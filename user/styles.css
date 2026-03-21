@@ -1,0 +1,42 @@
+:root { --bg: #050505; --led-yellow: #ffd700; --board-blue: #003366; --accent-blue: #00aaff; }
+body { background-color: var(--bg); background-image: radial-gradient(circle at 0% 50%, #800000 0%, transparent 45%), radial-gradient(circle at 100% 50%, #000080 0%, transparent 45%); color: white; font-family: 'Arial Black', sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
+body.game-mode { background-image: radial-gradient(circle at 0% 50%, #800000 -20%, transparent 35%), radial-gradient(circle at 100% 50%, #000080 -20%, transparent 35%); }
+#game-screen { display: none; flex-direction: column; align-items: center; justify-content: space-around; width: 100%; height: 100vh; padding: 20px; }
+#game-content { display: flex; width: 100%; justify-content: center; gap: 40px; align-items: center; }
+.team-box { background: rgba(10, 10, 10, 0.9); height: 400px; width: 280px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 20px; transition: 0.4s; border: 5px solid #333; }
+.main-board { background: var(--board-blue); border: 12px solid #3a3a3a; border-radius: 30px; padding: 30px; width: 850px; box-shadow: inset 0 0 80px #000; }
+.score-val { font-size: 90px; color: var(--led-yellow); font-family: monospace; font-weight: bold; }
+.ans-row { background: #004488; height: 60px; margin-bottom: 10px; border: 3px solid var(--accent-blue); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-size: 32px; }
+.ans-row.hidden span { visibility: hidden; }
+.ans-row.hidden::before { content: attr(data-index); color: var(--led-yellow); }
+.strikes { color: #ff0000; font-size: 80px; height: 90px; margin-top: 10px; letter-spacing: 15px; text-shadow: 0 0 20px red; }
+#question-display { width: 850px; text-align: center; font-size: 30px; color: var(--led-yellow); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; min-height: 70px; }
+.pixel-grid { display: grid; grid-template-columns: repeat(31, 20px); gap: 4px; background: #000; padding: 20px; border: 10px solid #222; }
+.pixel { width: 20px; height: 20px; background: #161610; border-radius: 2px; }
+.pixel.on { background: var(--led-yellow); box-shadow: 0 0 15px var(--led-yellow); }
+
+
+#consulting-msg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 215, 0, 0.9);
+    color: black;
+    padding: 30px 60px;
+    font-size: 40px;
+    font-weight: bold;
+    border: 5px solid white;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    z-index: 100;
+    display: none;
+    text-align: center;
+    border-radius: 20px;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}

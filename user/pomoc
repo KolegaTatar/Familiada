@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>REŻYSERKA - PANEL STEROWANIA</title>
+    <script src="../questions.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #222; color: white; padding: 20px; 
+        display: flex;
+        justify-content:center ;  
+    }
+        .container{
+            width: 70%;
+        }
+        .card { background: #333; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #ffd700; }
+        .status-card { border-left-color: #00ff00; background: #2a3a2a; }
+        button { padding: 12px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; background: #ffd700; margin-right: 5px; margin-bottom: 5px; }
+        input { padding: 12px; border-radius: 5px; border: none; width: 250px; font-size: 16px; }
+        .red { background: #ff4444; color: white; }
+        .blue { background: #008cba; color: white; }
+        .active-l { background-color: #ff4444;}
+        .active-r { background-color: #4444ff;}
+        .active{
+            background-color: #333;
+            color: #ffd700;
+        }
+        #current-q-display { font-weight: bold; color: #ffd700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>REŻYSERKA FAMILIADY ZSK</h1>
+    
+    <div class="card status-card">
+        <h3>STATUS: <span id="current-q-display">WYBIERZ RUNDĘ</span></h3>
+        <p>Aktywna drużyna (komu dać X):</p>
+        <button id="btn-team-1" onclick="setActiveTeam(1)">LEWA (Czerwoni)</button>
+        <button id="btn-team-2" onclick="setActiveTeam(2)">PRAWA (Niebiescy)</button>
+        <hr>
+        <button onclick="toggleIntro()" class="" id="intro">WŁĄCZ/WYŁĄCZ LOGO</button>
+        <button id="toggle-q-btn" onclick="toggleQuestion()" class="blue">POKAŻ PYTANIE</button>
+    </div>
+
+    <div class="card">
+        <h3>WYBIERZ RUNDĘ:</h3>
+        <div id="rounds-list"></div>
+    </div>
+
+    <div class="card">
+        <h3>OBSŁUGA ODPOWIEDZI:</h3>
+        <input type="text" id="ans_in" placeholder="Wpisz hasło...">
+        <button onclick="check()">ODKRYJ (Enter)</button>
+        <br><br>
+        <button class="red" onclick="autoStrike()" style="width: 100%; height: 50px; font-size: 1.2em;">BŁĄD AKTYWNEJ DRUŻYNY (X)</button>
+        <button onclick="clearStrikes()" style="background: #555; width: 100%; margin-top: 5px;">USUŃ WSZYSTKIE IKSY</button>
+    </div>
+
+    <div class="card">
+        <h3>PUNKTY:</h3>
+        <input type="text" id="n1" placeholder="Nazwa 1"> <input type="text" id="n2" placeholder="Nazwa 2">
+        <button onclick="setupTeams()">USTAW NAZWY</button>
+        <br><br>
+        <button onclick="assign(1)">DAJ PUNKTY LEWEJ</button>
+        <button onclick="assign(2)">DAJ PUNKTY PRAWEJ</button>
+    </div>
+
+    <div class="card" style="border-left-color: #ff4444;">
+        <button onclick="fullRestart()" class="red" style="background: #aa0000;">PEŁNY RESTART GRY</button>
+    </div>
+    </container>
+
+    <script>
+        let state = JSON.parse(localStorage.getItem('familiada_state')) || {
+            showIntro: true, showQuestion: false, activeTeam: 1,
+            name1: "DRUŻYNA 1", name2: "DRUŻYNA 2",
+            score1: 0, score2: 0, pot: 0, strikes1: 0, strikes2: 0,
+            answers: [], currentQuestion: ""
+        };
+
+        function sync() {
+            localStorage.setItem('familiada_state', JSON.stringify(state));
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('current-q-display').innerText = state.currentQuestion || "WYBIERZ RUNDĘ";
+            document.getElementById('btn-team-1').className = state.activeTeam === 1 ? "active-l" : "";
+            document.getElementById('btn-team-2').className = state.activeTeam === 2 ? "active-r" : "";
+            const qBtn = document.getElementById('toggle-q-btn');
+            qBtn.innerText = state.showQuestion ? "UKRYJ PYTANIE" : "POKAŻ PYTANIE";
+            qBtn.style.background = state.showQuestion ? "#ff4444" : "#008cba";
+        }
+
+        function setActiveTeam(n) { state.activeTeam = n; sync(); }
+        function toggleIntro() { 
+            state.showIntro = !state.showIntro; sync();
+             document.getElementById('intro').classList.toggle('active')
+        }
+        function toggleQuestion() { state.showQuestion = !state.showQuestion; sync(); }
+
+        function autoStrike() {
+            if(state.activeTeam === 1 && state.strikes1 < 3) state.strikes1++;
+            else if(state.activeTeam === 2 && state.strikes2 < 3) state.strikes2++;
+            sync();
+        }
+
+        function clearStrikes() { state.strikes1 = 0; state.strikes2 = 0; sync(); }
+
+        function setRound(idx) {
+            const r = roundsData[idx];
+            state.answers = r.odpowiedzi.map(a => ({...a, revealed: false}));
+            state.currentQuestion = r.pytanie;
+            state.pot = 0; state.strikes1 = 0; state.strikes2 = 0;
+            state.showIntro = false; state.showQuestion = false;
+            sync();
+        }
+
+        function check() {
+            const v = document.getElementById('ans_in').value.trim().toUpperCase();
+            state.answers.forEach(a => { if(a.text === v && !a.revealed) { a.revealed = true; state.pot += a.points; } });
+            document.getElementById('ans_in').value = ''; sync();
+        }
+
+        function assign(n) {
+            if(n === 1) state.score1 += state.pot; else state.score2 += state.pot;
+            state.pot = 0; state.strikes1 = 0; state.strikes2 = 0; sync();
+        }
+
+        function setupTeams() {
+            state.name1 = document.getElementById('n1').value || state.name1;
+            state.name2 = document.getElementById('n2').value || state.name2;
+            sync();
+        }
+
+        function fullRestart() { if(confirm("Restart?")) { localStorage.clear(); location.reload(); } }
+
+        function init() {
+            const list = document.getElementById('rounds-list');
+            roundsData.forEach((r, i) => {
+                const b = document.createElement('button');
+                b.innerText = `Runda ${i+1}`; b.onclick = () => setRound(i);
+                list.appendChild(b);
+            });
+            updateUI();
+        }
+
+        document.getElementById('ans_in').onkeypress = (e) => { if(e.key === 'Enter') check(); };
+        init();
+    </script>
+</body>
+</html>

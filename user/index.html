@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>FAMILIADA - WIDOK WIDZA</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="intro-screen">
+        <div class="pixel-grid" id="pixel-canvas"></div>
+    </div>
+    <div id="game-screen">
+        <div id="consulting-msg"></div> <div class="pot-area">
+            <div class="pot-label">SUMA</div>
+            <div class="score-val" id="pot">000</div>
+        </div>
+        <div id="question-display"></div>
+        <div id="game-content">
+            <div class="side-area">
+                <div class="team-box" id="box-left">
+                    <h2 id="n1">DRUŻYNA 1</h2>
+                    <div class="score-val" id="s1">000</div>
+                </div>
+                <div class="strikes" id="str1"></div>
+            </div>
+            <div class="main-board" id="ans-grid"></div>
+            <div class="side-area">
+                <div class="team-box" id="box-right">
+                    <h2 id="n2">DRUŻYNA 2</h2>
+                    <div class="score-val" id="s2">000</div>
+                </div>
+                <div class="strikes" id="str2"></div>
+            </div>
+        </div>
+    </div>
+    <script src="logic.js"></script>
+</body>
+</html>

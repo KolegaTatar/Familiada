@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>REŻYSERKA FAMILIADY - PANEL</title>
+    <script src="../database.js"></script>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --bg: #1a1a1a;
+            --card-bg: #333;
+            --red: #ff4444;
+            --blue: #008cba;
+            --green: #2ecc71;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; padding-bottom: 80px; }
+        .card { background: var(--card-bg); padding: 15px; border-radius: 10px; border-left: 5px solid var(--gold); margin-bottom: 15px; }
+        .status-card { border-left-color: var(--green); background: #223a22; }
+        button { padding: 12px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; background: var(--gold); margin: 3px; transition: 0.3s; }
+        button:hover { filter: brightness(1.2); }
+        .red { background: var(--red); color: white; }
+        .blue { background: var(--blue); color: white; }
+        .green { background: var(--green); color: white; }
+        .active-1 { background: var(--red) !important; box-shadow: 0 0 15px var(--red); }
+        .active-2 { background: var(--blue) !important; box-shadow: 0 0 15px var(--blue); }
+        input { padding: 12px; border-radius: 5px; width: 220px; font-size: 16px; border: none; margin-bottom: 5px; display: block; background: #444; color: white; }
+        
+   
+        #status-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #000;
+            padding: 15px; border-top: 3px solid var(--gold); display: flex;
+            justify-content: space-around; align-items: center; z-index: 1000;
+        }
+        .stat-item { font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { color: var(--gold); margin-left: 5px; }
+    </style>
+</head>
+<body>
+    <div class="col">
+        <div class="card status-card">
+            <h3>KONTROLA ETAPU</h3>
+            <div style="display: flex; gap: 5px;">
+                <button id="b1" onclick="setActive(1)">LEWA (Pulpit)</button>
+                <button id="b2" onclick="setActive(2)">PRAWA (Pulpit)</button>
+            </div>
+            <hr style="border: 0.5px solid #444; margin: 15px 0;">
+            <button onclick="toggleIntro()">LOGO ON/OFF</button>
+            <button onclick="toggleQuestion()" class="blue">PYTANIE ON/OFF</button>
+        </div>
+
+        <div class="card">
+            <h3>USTAWIENIA DRUŻYN</h3>
+            <input type="text" id="in-n1" placeholder="Nazwa Drużyny 1">
+            <input type="text" id="in-n2" placeholder="Nazwa Drużyny 2">
+            <button onclick="submitNames()" class="green" style="width: 100%;">ZATWIERDŹ NAZWY</button>
+        </div>
+
+        <div class="card">
+            <h3>LISTA RUND</h3>
+            <div id="rounds-list"></div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card">
+            <h3>KONSOLA ODPOWIEDZI</h3>
+            <input type="text" id="ans_in" placeholder="Wpisz hasło..." style="display: inline-block;">
+            <button onclick="check()">SPRAWDŹ (Enter)</button>
+            <br><br>
+            <button class="red" onclick="handleError()" style="width: 100%;">BŁĄD (X)</button>
+            <button onclick="revealAll()" style="background: #666; width: 100%; margin-top: 5px;">ODKRYJ WSZYSTKO</button>
+        </div>
+
+        <div class="card">
+            <h3>ZARZĄDZANIE PUNKTAMI</h3>
+            <button onclick="assign(1)">PRZYZNAJ SUMĘ LEWEJ</button>
+            <button onclick="assign(2)">PRZYZNAJ SUMĘ PRAWEJ</button>
+            <hr style="border: 0.5px solid #444; margin: 15px 0;">
+            <button onclick="fullRestart()" class="red">RESTART CAŁEJ GRY</button>
+        </div>
+    </div>
+
+    <div id="status-bar">
+        <div class="stat-item">Aktywna: <span id="stat-active" class="stat-val">-</span></div>
+        <div class="stat-item">Tryb: <span id="stat-mode" class="stat-val">-</span></div>
+        <div class="stat-item">Mnożnik: <span id="stat-mult" class="stat-val">x1</span></div>
+        <div class="stat-item">Suma w Rundzie: <span id="stat-pot" class="stat-val">0</span></div>
+    </div>
+
+    <script>
+        let state = JSON.parse(localStorage.getItem('familiada_state')) || getInit();
+
+        function getInit() {
+            return {
+                showIntro: true, showQuestion: false, activeTeam: 0, duelPhase: true,
+                name1: "DRUŻYNA 1", name2: "DRUŻYNA 2",
+                score1: 0, score2: 0, pot: 0, strikes1: 0, strikes2: 0,
+                answers: [], currentQuestion: "", multiplier: 1
+            };
+        }
+
+        function sync() { 
+            localStorage.setItem('familiada_state', JSON.stringify(state)); 
+            render(); 
+        }
+
+        function render() {
+            document.getElementById('b1').className = state.activeTeam === 1 ? "active-1" : "";
+            document.getElementById('b2').className = state.activeTeam === 2 ? "active-2" : "";
+            
+       
+            document.getElementById('stat-active').innerText = state.activeTeam === 0 ? "BRAK" : (state.activeTeam === 1 ? state.name1 : state.name2);
+            document.getElementById('stat-mode').innerText = state.duelPhase ? "POJEDYNEK" : "GRA";
+            document.getElementById('stat-mult').innerText = "x" + state.multiplier;
+            document.getElementById('stat-pot').innerText = state.pot;
+        }
+
+        function submitNames() {
+            state.name1 = document.getElementById('in-n1').value || "DRUŻYNA 1";
+            state.name2 = document.getElementById('in-n2').value || "DRUŻYNA 2";
+            sync();
+        }
+
+        function setActive(n) { state.activeTeam = n; sync(); }
+        function toggleIntro() { state.showIntro = !state.showIntro; sync(); }
+        function toggleQuestion() { state.showQuestion = !state.showQuestion; sync(); }
+
+        function setRound(idx) {
+            const r = roundsData[idx];
+            state.answers = r.odpowiedzi.map(a => ({...a, revealed: false}));
+            state.currentQuestion = r.pytanie;
+            state.multiplier = r.multiplier;
+            state.activeTeam = 0; state.duelPhase = true;
+            state.strikes1 = 0; state.strikes2 = 0; state.pot = 0;
+            state.showIntro = false; state.showQuestion = false;
+            sync();
+        }
+
+        function check() {
+            const val = document.getElementById('ans_in').value.trim().toUpperCase();
+            if(!val || state.activeTeam === 0) return;
+            let found = false;
+            state.answers.forEach(a => {
+                if(a.text === val && !a.revealed) {
+                    a.revealed = true;
+                    state.pot += (a.points * state.multiplier);
+                    found = true;
+                }
+            });
+            if(found) { 
+                state.duelPhase = false; 
+                if(state.answers.every(a => a.revealed)) assign(state.activeTeam);
+            } else handleError();
+            document.getElementById('ans_in').value = ''; sync();
+        }
+
+        function revealAll() {
+            state.answers.forEach(a => a.revealed = true);
+            sync();
+        }
+
+        function handleError() {
+            if(state.activeTeam === 0) return;
+            if(state.duelPhase) {
+                if(state.activeTeam === 1) { state.strikes1 = 1; state.activeTeam = 2; }
+                else { state.strikes2 = 1; state.activeTeam = 1; }
+                state.duelPhase = false;
+            } else {
+                if(state.activeTeam === 1) {
+                    state.strikes1++; if(state.strikes1 === 3) state.activeTeam = 2;
+                } else {
+                    state.strikes2++; if(state.strikes2 === 3) state.activeTeam = 1;
+                }
+            }
+            sync();
+        }
+
+        function assign(n) {
+            if(n === 1) state.score1 += state.pot; else state.score2 += state.pot;
+            state.pot = 0; state.strikes1 = 0; state.strikes2 = 0; state.activeTeam = 0; state.duelPhase = true;
+            sync();
+        }
+
+        function fullRestart() { if(confirm("CZY NA PEWNO ZRESETOWAĆ CAŁĄ GRĘ?")) { localStorage.clear(); location.reload(); } }
+
+        roundsData.forEach((r, i) => {
+            const b = document.createElement('button');
+            b.innerText = `R${i+1} (x${r.multiplier})`;
+            b.onclick = () => setRound(i);
+            document.getElementById('rounds-list').appendChild(b);
+        });
+
+        window.onload = () => {
+            if(!state.currentQuestion) setRound(0);
+            document.getElementById('in-n1').value = state.name1;
+            document.getElementById('in-n2').value = state.name2;
+            render();
+        };
+
+        document.getElementById('ans_in').onkeypress = (e) => { if(e.key === 'Enter') check(); };
+    </script>
+</body>
+</html>
