@@ -23,43 +23,101 @@ function drawIntro() {
         canvas.appendChild(d);
     }));
 }
-
 function update() {
     const data = JSON.parse(localStorage.getItem('familiada_state'));
     if(!data) return;
 
-    if(data.showIntro) {
-        document.getElementById('intro-screen').style.display = 'flex';
-        document.getElementById('game-screen').style.display = 'none';
-        document.body.classList.remove('game-mode');
-    } else {
-        document.getElementById('intro-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'flex';
-        document.body.classList.add('game-mode');
+    const intro = document.getElementById('intro-screen');
+    const game = document.getElementById('game-screen');
+    const win = document.getElementById('win-screen');
+    const blackout = document.getElementById('blackout');
 
-        const qD = document.getElementById('question-display');
-        qD.innerText = data.showQuestion ? `${data.currentQuestion} (x${data.multiplier})` : "";
+    // 1. Obsługa szybkiego przejścia (Transitioning)
+    if (data.transitioning) {
+        if (blackout) blackout.style.opacity = "1";
+        return; // Czekamy aż reżyser wyłączy transitioning
+    } 
+
+    // 2. Wybór aktywnego ekranu
+    if (data.isGameOver) { 
+        switchScreen(win);
+        document.getElementById('win-team-name').innerText = data.winner; 
+        document.getElementById('win-points').innerText = `${data.score1} : ${data.score2}`; 
+    } 
+    else if (data.showIntro) { 
+        switchScreen(intro);
+        document.body.classList.remove('game-mode'); 
+    } 
+    else { 
+        switchScreen(game);
+        document.body.classList.add('game-mode'); 
+        updateBoard(data); 
+    }
+
+    // 3. Wyłączenie blackoutu po zakończeniu operacji
+    if (blackout && !data.transitioning) {
+        blackout.style.opacity = "0";
+    }
+}
+
+// Zmieniona nazwa, żeby nie kolidowała z animacjami systemowymi
+function switchScreen(target) {
+    const screens = [
+        document.getElementById('intro-screen'), 
+        document.getElementById('game-screen'), 
+        document.getElementById('win-screen')
+    ];
+
+    screens.forEach(s => {
+        if (s === target) {
+            s.style.display = 'flex';
+            s.style.opacity = '1';
+        } else {
+            s.style.display = 'none';
+            s.style.opacity = '0';
+        }
+    });
+}
+
+function updateBoard(data) {
+    const qD = document.getElementById('question-display');
+    const narada = document.getElementById('narada-box');
+
+    // Pytanie
+    if (qD) {
+        qD.innerText = data.showQuestion ? data.currentQuestion : "";
         qD.style.opacity = data.showQuestion ? "1" : "0";
+    }
 
-        document.getElementById('n1').innerText = data.name1;
-        document.getElementById('n2').innerText = data.name2;
+    // Narada
+    if (narada) {
+        if(data.showNarada && ((data.strikes1 === 2 && data.activeTeam === 1) || (data.strikes2 === 2 && data.activeTeam === 2))) {
+            const opponentName = data.activeTeam === 1 ? data.name2 : data.name1;
+            narada.innerText = `DRUŻYNA ${opponentName} SIĘ NARADZA!`;
+            narada.style.display = 'block';
+        } else { 
+            narada.style.display = 'none'; 
+        }
+    }
 
-        document.getElementById('s1').innerText = data.score1.toString().padStart(3, '0');
-        document.getElementById('s2').innerText = data.score2.toString().padStart(3, '0');
-        document.getElementById('pot').innerText = data.pot.toString().padStart(3, '0');
-        document.getElementById('str1').innerText = "X".repeat(data.strikes1);
-        document.getElementById('str2').innerText = "X".repeat(data.strikes2);
+    // Wyniki i nazwy
+    document.getElementById('n1').innerText = data.name1;
+    document.getElementById('n2').innerText = data.name2;
+    document.getElementById('s1').innerText = data.score1.toString().padStart(3, '0');
+    document.getElementById('s2').innerText = data.score2.toString().padStart(3, '0');
+    document.getElementById('pot').innerText = data.pot.toString().padStart(3, '0');
+    
+    // Iksy (Strikes)
+    document.getElementById('str1').innerText = "X".repeat(data.strikes1);
+    document.getElementById('str2').innerText = "X".repeat(data.strikes2);
 
-        const bL = document.getElementById('box-left');
-        const bR = document.getElementById('box-right');
-        
-       
-        bL.style.boxShadow = data.activeTeam === 1 ? "0 0 50px #ff3333" : "none";
-        bL.style.borderColor = data.activeTeam === 1 ? "#ff3333" : "#333";
-        bR.style.boxShadow = data.activeTeam === 2 ? "0 0 50px #3333ff" : "none";
-        bR.style.borderColor = data.activeTeam === 2 ? "#3333ff" : "#333";
+    // Podświetlenie aktywnej drużyny
+    document.getElementById('box-left').style.boxShadow = data.activeTeam === 1 ? "0 0 50px #ff3333" : "none";
+    document.getElementById('box-right').style.boxShadow = data.activeTeam === 2 ? "0 0 50px #3333ff" : "none";
 
-        const grid = document.getElementById('ans-grid');
+    // Tablica odpowiedzi
+    const grid = document.getElementById('ans-grid');
+    if (grid) {
         grid.innerHTML = '';
         data.answers.forEach((ans, i) => {
             const div = document.createElement('div');
@@ -70,5 +128,10 @@ function update() {
         });
     }
 }
-window.onload = () => { drawIntro(); update(); };
+
+window.onload = () => { 
+    drawIntro(); 
+    update(); 
+};
+
 window.addEventListener('storage', update);

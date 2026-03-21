@@ -2,37 +2,54 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>FAMILIADA - WIDOK WIDZA</title>
+    <title>FAMILIADA ZSK - WIDOK WIDZA</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div id="blackout"></div>
+
     <div id="intro-screen">
         <div class="pixel-grid" id="pixel-canvas"></div>
     </div>
+
     <div id="game-screen">
-        <div id="consulting-msg"></div> <div class="pot-area">
+        <div id="narada-box"></div>
+        <div class="pot-area">
             <div class="pot-label">SUMA</div>
             <div class="score-val" id="pot">000</div>
         </div>
         <div id="question-display"></div>
+        
         <div id="game-content">
             <div class="side-area">
                 <div class="team-box" id="box-left">
-                    <h2 id="n1">DRUŻYNA 1</h2>
+                    <h2 id="n1">LEWA</h2>
                     <div class="score-val" id="s1">000</div>
                 </div>
                 <div class="strikes" id="str1"></div>
             </div>
+
             <div class="main-board" id="ans-grid"></div>
+
             <div class="side-area">
                 <div class="team-box" id="box-right">
-                    <h2 id="n2">DRUŻYNA 2</h2>
+                    <h2 id="n2">PRAWA</h2>
                     <div class="score-val" id="s2">000</div>
                 </div>
                 <div class="strikes" id="str2"></div>
             </div>
         </div>
     </div>
+
+    <div id="win-screen">
+        <div class="win-card">
+            <h1>WYGRYWA:</h1>
+            <div id="win-team-name">-</div>
+            <div id="win-points">0 : 0</div>
+            <h2 style="color: white; margin-top: 30px;">GRATULACJE!</h2>
+        </div>
+    </div>
+
     <script src="logic.js"></script>
 </body>
 </html>
