@@ -36,10 +36,6 @@
     </style>
 </head>
 <body>
-    <audio id="snd-intro" src="intro.mp3" loop></audio>
-    <audio id="snd-correct" src="correct.mp3"></audio>
-    <audio id="snd-wrong" src="wrong.mp3"></audio>
-    <audio id="snd-win" src="win.mp3"></audio>
 
     <div class="container">
         <div class="col">
@@ -68,7 +64,7 @@
                         <span style="font-size: 11px;">GŁOŚNOŚĆ:</span>
                         <input type="range" id="vol-slider" min="0" max="1" step="0.1" value="0.5" oninput="updateVolume(this.value)" style="width: 100%;">
                     </div>
-                    <p style="font-size: 11px; color: #aaa; margin: 10px 0 5px 0;">Ręczne wyzwalanie:</p>
+                    <p style="font-size: 11px; color: #aaa; margin: 10px 0 5px 0;">Ręczne wyzwalanie (U WIDZA):</p>
                     <div style="display: flex; gap: 5px;">
                         <button onclick="playSound('correct')" class="green" style="flex: 1; font-size: 11px;">✅ DOBRA</button>
                         <button onclick="playSound('wrong')" class="red" style="flex: 1; font-size: 11px;">❌ BŁĄD</button>
@@ -141,10 +137,26 @@
         let isMuted = false;
         let masterVolume = 0.5;
 
+        // Inicjalizacja stanu
+        let state = JSON.parse(localStorage.getItem('familiada_state')) || getInit();
+
+        function getInit() { 
+            return { showIntro: true, showQuestion: false, activeTeam: 0, duelPhase: true, showNarada: false, isGameOver: false, winner: null, name1: "LEWA", name2: "PRAWA", score1: 0, score2: 0, pot: 0, strikes1: 0, strikes2: 0, answers: [], currentQuestion: "", multiplier: 1, transitioning: false, lastSound: {id: null, time: 0} }; 
+        }
+
+        function sync() { 
+            localStorage.setItem('familiada_state', JSON.stringify(state)); 
+            render(); 
+        }
+
         function playSound(id) {
             if(isMuted) return;
-            const s = document.getElementById('snd-' + id);
-            if(s) { s.currentTime = 0; s.volume = masterVolume; s.play().catch(e => {}); }
+            // Sygnał dla widza
+            state.lastSound = {
+                id: id,
+                time: Date.now()
+            };
+            sync();
         }
 
         function toggleMasterMute() {
@@ -152,26 +164,26 @@
             const btn = document.getElementById('btn-mute');
             btn.innerText = isMuted ? "🔇 WYCISZONE" : "🔊 WŁĄCZONE";
             btn.className = isMuted ? "mute-active" : "gray";
-            if(isMuted) stopAllSounds(); else handleIntroMusic();
+            sync();
         }
 
-        function stopAllSounds() { document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; }); }
-        function updateVolume(v) { masterVolume = v; document.querySelectorAll('audio').forEach(a => a.volume = v); }
+        function stopAllSounds() {
+            // Sygnał stopu dla widza
+            state.lastSound = { id: 'stop', time: Date.now() };
+            sync();
+        }
+
+        function updateVolume(v) { 
+            masterVolume = v; 
+            // Możesz dodać przesyłanie głośności do stanu, jeśli widz ma na to reagować
+        }
 
         function handleIntroMusic() {
-            const introSnd = document.getElementById('snd-intro');
-            if(state.showIntro && !isMuted && !state.isGameOver) introSnd.play().catch(e => {});
-            else { introSnd.pause(); introSnd.currentTime = 0; }
+            // Ta funkcja jest teraz obsługiwana przez stan showIntro u widza.
+            // Zostawiamy ją pustą lub usuwamy wywołania, aby uniknąć błędów null.
         }
 
         function toggleCard(el) { el.parentElement.classList.toggle('collapsed'); }
-        
-        let state = JSON.parse(localStorage.getItem('familiada_state')) || getInit();
-        function getInit() { 
-            return { showIntro: true, showQuestion: false, activeTeam: 0, duelPhase: true, showNarada: false, isGameOver: false, winner: null, name1: "LEWA", name2: "PRAWA", score1: 0, score2: 0, pot: 0, strikes1: 0, strikes2: 0, answers: [], currentQuestion: "", multiplier: 1, transitioning: false }; 
-        }
-
-        function sync() { localStorage.setItem('familiada_state', JSON.stringify(state)); render(); handleIntroMusic(); }
 
         function render() {
             const b1 = document.getElementById('b1');
@@ -215,10 +227,8 @@
             document.getElementById('st-nar').innerText = n;
 
             document.body.style.pointerEvents = state.transitioning ? "none" : "auto";
-            /*document.body.style.filter = state.transitioning ? "grayscale(0.6)" : "none";*/
         }
 
-        // --- BRAKUJĄCA FUNKCJA ---
         function updateNaradaVisibility() {
             state.showNarada = document.getElementById('chk-narada').checked;
             sync();
@@ -229,7 +239,6 @@
             state.isGameOver = false; 
             state.duelPhase = true; 
             if (!state.currentQuestion) setRound(0); 
-            stopAllSounds(); 
             sync(); 
         }
 
@@ -237,7 +246,7 @@
             state.transitioning = true; 
             sync();
             setTimeout(() => {
-                if(typeof roundsData !== 'undefined') {
+                if(typeof roundsData !== 'undefined' && roundsData[idx]) {
                     const r = roundsData[idx];
                     state.answers = r.odpowiedzi.map(a => ({...a, revealed: false}));
                     state.currentQuestion = r.pytanie; 
@@ -327,13 +336,23 @@
         function closeRestartModal() { document.getElementById('restart-modal').style.display = 'none'; }
         
         function confirmFullRestart() {
-            stopAllSounds();
+            // 1. Czyścimy całkowicie pamięć przeglądarki
             localStorage.clear();
-            const freshState = getInit();
-            localStorage.setItem('familiada_state', JSON.stringify(freshState));
+
+            // 2. Pobieramy świeży, bazowy stan (ten z showIntro: true)
+            state = getInit();
+
+            // 3. Wysyłamy go do bazy, aby Widz (TV) natychmiast zareagował
+            localStorage.setItem('familiada_state', JSON.stringify(state));
+
+            // 4. Zamykamy okno modala
             closeRestartModal();
+
+            // 5. Odświeżamy admina po krótkiej chwili, by wszystko wskoczyło na nowo
             document.body.style.opacity = '0.5';
-            setTimeout(() => { window.location.reload(); }, 200);
+            setTimeout(() => {
+                window.location.reload();
+            }, 150);
         }
 
         function setActive(n) { state.activeTeam = n; sync(); }
@@ -353,7 +372,6 @@
             document.getElementById('in-n1').value = state.name1;
             document.getElementById('in-n2').value = state.name2;
             render();
-            handleIntroMusic();
         };
 
         document.getElementById('ans_in').onkeypress = (e) => { if(e.key === 'Enter') check(); };
