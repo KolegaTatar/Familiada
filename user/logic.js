@@ -28,49 +28,68 @@ function drawIntro() {
 }
 function update() {
     const data = JSON.parse(localStorage.getItem('familiada_state'));
-    
-    // Jeśli brak danych (np. po localStorage.clear()), wymuszamy stan początkowy wizualnie
     if (!data) {
-        lastPlayedTimestamp = 0; // Resetujemy czas dźwięków
-        location.reload(); // Najbezpieczniejsza opcja przy pełnym resecie
+        location.reload();
         return;
     }
 
+    const allAudios = document.querySelectorAll('audio');
     const introSnd = document.getElementById('snd-intro');
-    const intro = document.getElementById('intro-screen');
-    const game = document.getElementById('game-screen');
-    const win = document.getElementById('win-screen');
-    const blackout = document.getElementById('blackout');
 
-    // --- 1. OBSŁUGA DŹWIĘKÓW (EFEKTY) ---
-    if (data.lastSound && data.lastSound.time > lastPlayedTimestamp) {
+    // --- 1. GLOBALNE WYCISZENIE ---
+    if (data.isMuted) {
+        allAudios.forEach(a => {
+            a.pause();
+            a.muted = true;
+        });
+    } else {
+        allAudios.forEach(a => a.muted = false);
+    }
+
+    // --- 2. OBSŁUGA KOMENDY STOP ---
+    if (data.lastSound && data.lastSound.id === 'stop' && data.lastSound.time > lastPlayedTimestamp) {
+        allAudios.forEach(a => {
+            a.pause();
+            a.currentTime = 0;
+        });
+        lastPlayedTimestamp = data.lastSound.time;
+        return; 
+    }
+
+    // --- 3. EFEKTY DŹWIĘKOWE (OK, X, WIN) ---
+    if (!data.isMuted && data.lastSound && data.lastSound.time > lastPlayedTimestamp) {
         const s = document.getElementById('snd-' + data.lastSound.id);
         if (s) {
-            s.currentTime = 0;
-            s.play().catch(e => console.log("Interakcja wymagana do odtworzenia audio"));
+            // Zatrzymujemy inne efekty, by się nie nakładały (oprócz intro)
+            allAudios.forEach(a => { if(a.id !== 'snd-intro') { a.pause(); a.currentTime = 0; } });
+            
+            s.play().catch(e => console.log("Odblokuj audio kliknięciem"));
         }
         lastPlayedTimestamp = data.lastSound.time;
     }
 
-    // --- 2. OBSŁUGA MUZYKI INTRO (LOOP) ---
-    if (introSnd) {
-        // Graj intro tylko gdy showIntro jest true i gra się nie skończyła
+    // --- 4. MUZYKA INTRO ---
+    if (introSnd && !data.isMuted) {
         if (data.showIntro && !data.isGameOver) {
             if (introSnd.paused) {
-                introSnd.currentTime = 0; // Start od początku przy resecie/wejściu
+                introSnd.currentTime = 0;
                 introSnd.play().catch(() => {});
             }
         } else {
-            // W każdym innym przypadku stopujemy intro
             introSnd.pause();
             introSnd.currentTime = 0;
         }
     }
 
-    // --- 3. OBSŁUGA EKRANÓW I PRZEJŚĆ (BLACKOUT) ---
+    // --- 5. EKRANY (switchScreen) ---
+    const intro = document.getElementById('intro-screen');
+    const game = document.getElementById('game-screen');
+    const win = document.getElementById('win-screen');
+    const blackout = document.getElementById('blackout');
+
     if (data.transitioning) {
         if (blackout) blackout.style.opacity = "1";
-        // Nie wychodzimy z funkcji, by tło pod blackoutem mogło się załadować w tle
+        return;
     } 
 
     if (data.isGameOver) { 
@@ -80,18 +99,13 @@ function update() {
     } 
     else if (data.showIntro) { 
         switchScreen(intro);
-        document.body.classList.remove('game-mode'); 
     } 
     else { 
         switchScreen(game);
-        document.body.classList.add('game-mode'); 
         updateBoard(data); 
     }
 
-    // Zdjęcie zasłony tylko gdy reżyser skończył transycję
-    if (blackout && !data.transitioning) {
-        blackout.style.opacity = "0";
-    }
+    if (blackout && !data.transitioning) blackout.style.opacity = "0";
 }
 
 function switchScreen(target) {
