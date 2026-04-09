@@ -82,7 +82,7 @@ function update() {
         }
     }
 
-    // --- 5. EKRANY (switchScreen) ---
+  
     const intro = document.getElementById('intro-screen');
     const game = document.getElementById('game-screen');
     const win = document.getElementById('win-screen');

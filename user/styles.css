@@ -20,7 +20,6 @@ body {
 #blackout {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: black; opacity: 0; pointer-events: none; z-index: 9999;
-    /* transition: opacity 0.3s ease-in-out; <-- Zmień na to poniżej */
     transition: opacity 0.2s ease-in-out; 
 }
 
@@ -39,10 +38,10 @@ body {
     transition: opacity 0.6s ease-in-out;
     flex-direction: column; 
     align-items: center; 
-    justify-content: center; /* To trzyma całą grę na środku ekranu */
+    justify-content: center; 
 }
 
-/* --- LOGO --- */
+
 .pixel-grid { 
     display: grid; grid-template-columns: repeat(31, 20px); gap: 4px; 
     background: #000; padding: 20px; border: 8px solid #222; 
@@ -50,29 +49,28 @@ body {
 .pixel { width: 20px; height: 20px; background: #161610; border-radius: 2px; }
 .pixel.on { background: var(--led-yellow); box-shadow: 0 0 15px var(--led-yellow); }
 
-/* --- GRA (UKŁAD POZIOMY) --- */
 #game-content { 
     display: flex; 
-    flex-direction: row; /* WYMUSZENIE POZIOMU */
+    flex-direction: row;
     width: 95%; 
     justify-content: center; 
     align-items: center; 
     gap: 30px; 
 }
 #narada-box {
-    height: 60px; /* Stała wysokość rezerwuje miejsce u góry */
+    height: 60px; 
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 19px;
     margin-bottom: 10px;
-/* KLUCZ DO PŁYNNOŚCI: */
-    opacity: 0;            /* Domyślnie niewidoczny */
-    transition: opacity 0.5s ease-in-out; /* Czas trwania animacji */
+
+    opacity: 0;       
+    transition: opacity 0.5s ease-in-out; 
 }
 
-/* Klasa, którą nadamy w JS, gdy narada ma się pojawić */
+
 #narada-box.active {
     opacity: 1;
 }
@@ -80,10 +78,10 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 250px; /* Stała szerokość bocznych paneli */
+    width: 250px; 
 }
 
-/* PYTANIE - STAŁA POZYCJA */
+
 #question-display { 
     width: 800px; height: 80px; display: flex; align-items: center; justify-content: center;
     font-size: 26px; color: var(--led-yellow); background: rgba(0,0,0,0.6); 
