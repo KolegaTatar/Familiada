@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PANEL PROWADZĄCEGO - FAMILIADA ZSK</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root { 
+            --gold: #dbb13b; --gold-light: #fff3d4; --bg: #050a14; --card-bg: #101626;
+            --red: #ff3333; --blue: #0077ff; --text-main: #f0f0f0;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg); color: var(--text-main); margin: 0; padding: 0;
+            height: 100vh; width: 100vw; overflow: hidden;
+            display: grid;
+            grid-template-rows: 60px 70px 90px 110px 1fr 45px; 
+        }
+
+        #top-bar { 
+            background: #000; border-bottom: 3px solid var(--gold); 
+            display: flex; justify-content: space-around; align-items: center;
+            font-weight: bold; font-size: 18px;
+        }
+        .stat-val { color: var(--gold); font-size: 22px; margin-left: 5px; }
+
+        #chat-zone { display: flex; align-items: center; justify-content: center; background: rgba(219, 177, 59, 0.02); }
+        #chat-popup {
+            display: none; width: 90%; background: var(--gold); color: black; 
+            padding: 10px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 18px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        #team-zone { display: flex; align-items: center; justify-content: center; padding: 0 20px; }
+        #team-banner {
+            width: 100%; height: 60px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 900; background: #1a1a1a;
+            border: 2px solid #333; text-transform: uppercase; 
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .active-red { background: var(--red) !important; border-color: white !important; box-shadow: 0 0 20px var(--red); color: white; }
+        .active-blue { background: var(--blue) !important; border-color: white !important; box-shadow: 0 0 20px var(--blue); color: white; }
+
+        #q-zone { padding: 0 20px; display: flex; align-items: center; justify-content: center; }
+        .card-q { 
+            background: var(--card-bg); border-left: 8px solid var(--gold);
+            width: 100%; padding: 20px; border-radius: 10px; text-align: center;
+        }
+        #q-text { font-size: 24px; margin: 0; color: var(--gold-light); text-transform: uppercase; }
+
+        #ans-zone { padding: 10px 20px 20px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .ans-row {
+            background: rgba(255, 255, 255, 0.03); min-height: 52px;
+            border-radius: 8px; padding: 0 25px; font-size: 22px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(255,255,255,0.05); color: #444;
+        }
+        .revealed { color: var(--gold-light); border-left: 10px solid var(--gold); background: rgba(219, 177, 59, 0.15); font-weight: bold; }
+
+        #footer {
+            background: #000; border-top: 2px solid var(--gold);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; font-size: 11px; color: #555;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #e74c3c; transition: 0.3s; }
+        .online { background: #2ecc71 !important; box-shadow: 0 0 10px #2ecc71; }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <div>PYTANIE NR: <span id="st-round" class="stat-val">-</span></div>
+        <div>MNOŻNIK: <span id="st-mult" class="stat-val">x1</span></div>
+        <div>PUNKTY: <span id="st-pot" class="stat-val">0</span></div>
+    </div>
+
+    <div id="chat-zone">
+        <div id="chat-popup">⚠️ REŻYSER: <span id="chat-msg">...</span></div>
+    </div>
+
+    <div id="team-zone">
+        <div id="team-banner">OCZEKIWANIE...</div>
+    </div>
+
+    <div id="q-zone">
+        <div class="card-q"><h2 id="q-text">ŁĄCZENIE Z REŻYSERKĄ...</h2></div>
+    </div>
+
+    <div id="ans-zone"></div>
+
+    <div id="footer">
+        <div style="display:flex; align-items:center;">
+            <div id="conn-dot" class="dot"></div>
+            <span id="conn-text">REŻYSERIA: ROZŁĄCZONO</span>
+        </div>
+        <div>SYNC: <span id="last-sync" style="color:var(--gold)">--:--:--</span></div>
+    </div>
+
+    <script>
+        const peer = new Peer();
+        let conn;
+
+        peer.on('open', id => {
+            connect();
+        });
+
+        function connect() {
+            conn = peer.connect('familiada-rezyser-zsk');
+            
+            conn.on('open', () => {
+                const dot = document.getElementById('conn-dot');
+                const text = document.getElementById('conn-text');
+                dot.classList.add('online');
+                text.innerText = 'REŻYSERIA: POŁĄCZONO';
+                text.style.color = '#2ecc71';
+            });
+
+            conn.on('data', data => {
+                const now = new Date();
+                document.getElementById('last-sync').innerText = now.toLocaleTimeString();
+
+                let state = (typeof data === 'string') ? JSON.parse(data) : data;
+
+                if (state.type === 'CHAT_MSG') {
+                    showChat(state.text);
+                } else {
+                    updateUI(state);
+                }
+            });
+
+            conn.on('close', () => handleDisconnect());
+            conn.on('error', () => handleDisconnect());
+        }
+
+        function handleDisconnect() {
+            const dot = document.getElementById('conn-dot');
+            const text = document.getElementById('conn-text');
+            dot.classList.remove('online');
+            text.innerText = 'REŻYSERIA: ROZŁĄCZONO';
+            text.style.color = '#e74c3c';
+            setTimeout(connect, 2000);
+        }
+
+        let chatTimeout = null;
+
+        function showChat(text) {
+            const p = document.getElementById('chat-popup');
+            const msg = document.getElementById('chat-msg');
+
+            msg.innerText = text;
+            p.style.display = 'block';
+
+            if (chatTimeout) {
+                clearTimeout(chatTimeout);
+            }
+
+            chatTimeout = setTimeout(() => {
+                p.style.display = 'none';
+                chatTimeout = null;
+            }, 15000); 
+        }
+
+        function updateUI(state) {
+            if (!state) return;
+
+            document.getElementById('st-round').innerText = state.round || "-";
+            document.getElementById('st-mult').innerText = 'x' + (state.multiplier || 1);
+            document.getElementById('st-pot').innerText = state.pot || 0;
+            document.getElementById('q-text').innerText = state.currentQuestion || "---";
+
+            const banner = document.getElementById('team-banner');
+            const nameL = state.name1 || "LEWA";
+            const nameR = state.name2 || "PRAWA";
+            
+            banner.className = ""; 
+            if (state.activeTeam === 1) { 
+                banner.classList.add('active-red'); 
+                banner.innerText = "GRA: " + nameL; 
+            }
+            else if (state.activeTeam === 2) { 
+                banner.classList.add('active-blue'); 
+                banner.innerText = "GRA: " + nameR; 
+            }
+            else { 
+                banner.innerText = "STARCIE: " + nameL + " vs " + nameR; 
+            }
+
+            const list = document.getElementById('ans-zone');
+            list.innerHTML = '';
+            if (state.answers) {
+                state.answers.forEach(a => {
+                    const div = document.createElement('div');
+                    div.className = `ans-row ${a.revealed ? 'revealed' : ''}`;
+                    div.innerHTML = `<span>${a.text}</span><span>${a.points}</span>`;
+                    list.appendChild(div);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

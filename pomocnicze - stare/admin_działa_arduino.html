@@ -689,7 +689,6 @@
         state.activeTeam = 0;        // Brak aktywnej drużyny na starcie
 
 
-        let serialWriter;
 
         let currentRoundNumber = "-";
 
@@ -824,50 +823,132 @@
 
 
        async function initSerial() {
-    if (!("serial" in navigator)) { 
-        alert("Twoja przeglądarka nie wspiera Serial API. Użyj Chrome lub Edge."); 
-        return; 
+
+    if (!("serial" in navigator)) {
+
+        alert("Twoja przeglądarka nie wspiera Serial API. Użyj Chrome lub Edge.");
+
+        return;
+
     }
-    if (serialWriter) return;
 
     try {
-        const port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 9600 });
-        serialWriter = port.writable.getWriter();
-        updateArduinoStatus(true);
-        state.showIntro = false;
 
-        const encoder = new TextEncoder();
-        await serialWriter.write(encoder.encode("S")); 
+        const port = await navigator.serial.requestPort();
+
+        await port.open({ baudRate: 9600 });
+
+        updateArduinoStatus(true);
+
+
+
+        // Automatycznie wyłączamy Intro, żeby buzzer mógł reagować
+
+        state.showIntro = false;
 
         sync();
 
-        const decoder = new TextDecoder();
-        const reader = port.readable.getReader();
+
+
+        // --- AGRESYWNE BUDZENIE ---
+
+        const writer = port.writable.getWriter();
+
+        const wakeUpSignal = new TextEncoder().encode("      I\n"); // Spacje pomagają "przepchać" pierwszy sygnał przez BT
+
+       
+
+        let attempts = 0;
+
+        const wakeUpInterval = setInterval(async () => {
+
+            if (attempts < 8) {
+
+                await writer.write(wakeUpSignal);
+
+                attempts++;
+
+            } else {
+
+                clearInterval(wakeUpInterval);
+
+                writer.releaseLock();
+
+            }
+
+        }, 400);
+
+
+
+        // --- ODBIERANIE DANYCH ---
+
+        const decoder = new TextDecoderStream();
+
+        port.readable.pipeTo(decoder.writable);
+
+        const reader = decoder.readable.getReader();
+
+
+
+        console.log("%c[System]: Połączono. Czekam na dane z Arduino...", "color: yellow; font-weight: bold;");
+
+
 
         while (true) {
+
             const { value, done } = await reader.read();
-            if (done) { reader.releaseLock(); break; }
-            const clean = decoder.decode(value).trim().toUpperCase();
-            if (clean.includes("L")) triggerBuzzer(1);
-            else if (clean.includes("P")) triggerBuzzer(2);
+
+            if (done) {
+
+                updateArduinoStatus(false);
+
+                break;
+
+            }
+
+           
+
+            // Logowanie wszystkiego co przychodzi (do diagnostyki)
+
+            const cleanValue = value.trim();
+
+            if(cleanValue.length > 0) {
+
+                console.log("%c[Arduino mówi]: " + cleanValue, "color: #00ff00; background: #222; padding: 2px 5px;");
+
+            }
+
+
+
+            // Obsługa sygnałów L i P
+
+            if (cleanValue.includes("L")) {
+
+                console.log("Rejestruję: LEWY");
+
+                triggerBuzzer(1);
+
+            }
+
+            if (cleanValue.includes("P")) {
+
+                console.log("Rejestruję: PRAWY");
+
+                triggerBuzzer(2);
+
+            }
+
         }
-    } catch (e) { 
-        console.error("Błąd połączenia:", e);
+
+    } catch (e) {
+
+        console.error("Błąd Serial:", e);
+
         updateArduinoStatus(false);
+
     }
+
 }
-
-async function sendToArduino(cmd) {
-    if (serialWriter) {
-        try {
-            const encoder = new TextEncoder();
-            await serialWriter.write(encoder.encode(cmd));
-        } catch (err) { console.error("Błąd wysyłania:", err); }
-    }
-}
-
-
 
         window.addEventListener('keydown', e => {
 
@@ -903,10 +984,12 @@ async function sendToArduino(cmd) {
 
         function resetBuzzers() {
 
-
             buzzerLocked = false;
+
             document.getElementById('buzzer-1').classList.remove('buzzer-active-1');
+
             document.getElementById('buzzer-2').classList.remove('buzzer-active-2');
+
             setActive(0);
 
         }
@@ -1137,7 +1220,7 @@ async function sendToArduino(cmd) {
 
 
 
-        function assign(n) { if(n === 1) state.score1 += state.pot; else state.score2 += state.pot; state.pot = 0; state.strikes1 = 0; state.strikes2 = 0; state.activeTeam = 0; resetBuzzers(); sync(); }
+        function assign(n) { if(n === 1) state.score1 += state.pot; else state.score2 += state.pot; state.pot = 0; state.strikes1 = 0; state.strikes2 = 0; state.activeTeam = 0; sync(); }
 
         function submitSettings() { state.name1 = document.getElementById('in-n1').value || "LEWA"; state.name2 = document.getElementById('in-n2').value || "PRAWA"; sync(); }
 
@@ -1145,11 +1228,7 @@ async function sendToArduino(cmd) {
 
         function toggleQuestion() { state.showQuestion = !state.showQuestion; sync(); }
 
-        function setActive(n) {
-            state.activeTeam = n;
-            sendToArduino(n.toString());
-            sync();
-        }
+        function setActive(n) { state.activeTeam = n; sync(); }
 
         function toggleMasterMute() { state.isMuted = !state.isMuted; sync(); }
 

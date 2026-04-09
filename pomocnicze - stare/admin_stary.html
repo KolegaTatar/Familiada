@@ -1,829 +1,365 @@
- <!DOCTYPE html>
-
+<!DOCTYPE html>
 <html lang="pl">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>REŻYSERKA FAMILIADA ZSK - FINAL PRO</title>
-
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-
     <script src="../dzien_teatru.js"></script>
-
     <style>
-
-        :root {
-
-            --gold: #ffd700;
-
-            --bg: #1a1a1a;
-
-            --card-bg: #333;
-
-            --red: #ff4444;
-
-            --blue: #008cba;
-
-            --green: #2ecc71;
-
+        :root { 
+            --gold: #ffd700; 
+            --bg: #1a1a1a; 
+            --card-bg: #333; 
+            --red: #ff4444; 
+            --blue: #008cba; 
+            --green: #2ecc71; 
         }
 
-
-
-        body {
-
-            font-family: 'Segoe UI', sans-serif;
-
-            background: var(--bg);
-
-            color: white;
-
-            margin: 0;
-
-            padding: 10px;
-
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--bg); 
+            color: white; 
+            margin: 0; 
+            padding: 10px; 
             padding-bottom: 180px; /* Miejsce na responsywny pasek statusu */
-
         }
 
-
-
-        .container {
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            gap: 15px;
-
-            max-width: 1200px;
-
-            margin: 0 auto;
-
+        .container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
         }
 
-
-
-        .col {
-
-            flex: 1;
-
-            min-width: 320px;
-
+        .col { 
+            flex: 1; 
+            min-width: 320px; 
             width: 100%;
-
         }
-
-
 
         /* Responsywność dla urządzeń mobilnych */
-
         @media (max-width: 768px) {
-
             .col { min-width: 100%; }
-
             body { padding-bottom: 220px; }
-
             .chat-grid { grid-template-columns: 1fr 1fr; }
-
         }
 
-
-
-        .card {
-
-            background: var(--card-bg);
-
-            border-radius: 10px;
-
-            border-left: 5px solid var(--gold);
-
-            margin-bottom: 15px;
-
-            overflow: hidden;
-
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-
-            transition: all 0.3s ease;
-
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 10px; 
+            border-left: 5px solid var(--gold); 
+            margin-bottom: 15px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+            transition: all 0.3s ease; 
         }
 
-
-
-        .card-header {
-
-            background: rgba(255,255,255,0.05);
-
-            padding: 15px;
-
-            cursor: pointer;
-
-            display: flex;
-
-            justify-content: space-between;
-
-            font-weight: bold;
-
-            font-size: 13px;
-
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-
+        .card-header { 
+            background: rgba(255,255,255,0.05); 
+            padding: 15px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: space-between; 
+            font-weight: bold; 
+            font-size: 13px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
         }
-
-
 
         .card-header:hover { background: rgba(255,255,255,0.1); }
-
         .card-content { padding: 15px; }
-
         .collapsed .card-content { display: none; }
 
-
-
         .card-header span::after { content: ' ▲'; font-size: 10px; opacity: 0.5; }
-
         .collapsed .card-header span::after { content: ' ▼'; }
 
-
-
-        button {
-
-            padding: 12px 10px;
-
-            cursor: pointer;
-
-            border: none;
-
-            border-radius: 5px;
-
-            font-weight: bold;
-
-            background: var(--gold);
-
-            margin: 3px;
-
-            transition: all 0.2s;
-
-            color: #000;
-
+        button { 
+            padding: 12px 10px; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            background: var(--gold); 
+            margin: 3px; 
+            transition: all 0.2s; 
+            color: #000; 
             font-size: 12px;
-
             display: inline-flex;
-
             align-items: center;
-
             justify-content: center;
-
         }
-
-
 
         button:active { transform: scale(0.96); }
-
       button:hover {
-
         /* Nakłada 20% czerni na obecny kolor tła */
-
         background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
-
-       
-
+        
     }
-
-       
-
+        
         .red { background: var(--red); color: white; }  
-
         .blue { background: var(--blue); color: white; }
-
         .green { background: var(--green); color: white; }
-
         .gray { background: #555; color: white; }
-
-       
-
+        
         .btn-on { background: #fff !important; color: #000 !important; box-shadow: 0 0 15px #fff; border: 2px solid var(--gold) !important; }
-
         .active-red-team { background: var(--red) !important; box-shadow: 0 0 15px var(--red); color: white !important; }
-
         .active-blue-team { background: var(--blue) !important; box-shadow: 0 0 15px var(--blue); color: white !important; }
-
         .mute-active { background: #8d080888 !important; color: white !important; box-shadow: 0 0 1px #ff0000; }
 
-
-
-        input[type="text"], input[type="number"] {
-
-            padding: 12px;
-
-            border-radius: 5px;
-
-            width: 100%;
-
+        input[type="text"], input[type="number"] { 
+            padding: 12px; 
+            border-radius: 5px; 
+            width: 100%; 
             box-sizing: border-box;
-
-            margin-bottom: 10px;
-
-            background: #444;
-
-            color: white;
-
-            border: 1px solid #555;
-
-            font-size: 14px;
-
+            margin-bottom: 10px; 
+            background: #444; 
+            color: white; 
+            border: 1px solid #555; 
+            font-size: 14px; 
         }
 
-
-
-        #status-bar {
-
-            position: fixed;
-
-            bottom: 0;
-
-            left: 0;
-
-            width: 100%;
-
-            background: #000;
-
-            padding: 1px 0.5px;
-
-            border-top: 3px solid var(--gold);
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            justify-content: space-around;
-
-            font-weight: bold;
-
-            z-index: 1000;
-
+        #status-bar { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            background: #000; 
+            padding: 1px 0.5px; 
+            border-top: 3px solid var(--gold); 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: space-around; 
+            font-weight: bold; 
+            z-index: 1000; 
         }
-
-
 
         #status-bar div { flex: 1; min-width: 100px; text-align: center; font-size: 11px; padding: 5px; }
-
         .stat-val { color: var(--gold); display: block; font-size: 14px; }
 
-
-
         .system-status { display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px; margin-bottom: 10px; }
-
         .status-row { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: bold; }
-
         .status-light { width: 10px; height: 10px; border-radius: 50%; background: #555; flex-shrink: 0; }
-
         .status-online { background: var(--green); box-shadow: 0 0 8px var(--green); }
-
         .status-offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
-
-       
-
+        
         .chat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 10px; }
 
-
-
         .buzzer-area { display: flex; gap: 10px; margin-bottom: 15px; }
-
         .buzzer-box { flex: 1; height: 60px; border: 2px solid #555; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; background: #222; color: #555; }
-
         .buzzer-active-1 { background: var(--red) !important; color: white !important; box-shadow: 0 0 15px var(--red); border-color: white; }
-
         .buzzer-active-2 { background: var(--blue) !important; color: white !important; box-shadow: 0 0 15px var(--blue); border-color: white; }
-
-       
-
+        
         .narada-active { border-color: var(--gold) !important; background: rgba(255, 215, 0, 0.15) !important; box-shadow: 0 0 10px var(--gold); }
-
         #answers-container button{
-
             justify-content: space-between;
-
             padding-left:10px ;
-
             padding-right:50px ;
-
         }
-
         #rounds-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 5px; }
 
-
-
-       
-
+        
         @keyframes final-pulse {
-
             0% { transform: scale(1); box-shadow: 0 0 5px var(--green); }
-
             50% { transform: scale(1.05); box-shadow: 0 0 25px var(--green), 0 0 40px var(--gold); background-color: #fff; color: #000; }
-
             100% { transform: scale(1); box-shadow: 0 0 5px var(--green); }
-
         }
-
         .ready-to-win { animation: final-pulse 1s infinite ease-in-out !important; border: 2px solid white !important; }
-
     </style>
-
 </head>
-
 <body>
 
-
-
     <div class="container">
-
         <div class="col">
-
             <div class="card" style="border-left-color: #00dbde">
-
                 <div class="card-header" onclick="toggleCard(this)">SYSTEMY I KOMUNIKACJA <span></span></div>
-
                 <div class="card-content">
-
                     <div class="system-status">
-
                         <div class="status-row">
-
                             <div id="tablet-light" class="status-light"></div>
-
                             <span>TABLET: <span id="tablet-text">SZUKAM...</span></span>
-
                         </div>
-
                         <div class="status-row">
-
                             <div id="arduino-light" class="status-light"></div>
-
                             <span>ARDUINO: <span id="arduino-text">ODŁĄCZONE</span></span>
-
                         </div>
-
                     </div>
-
                     <div class="chat-grid">
-
                         <button onclick="quickChat('ZACZYNAJ!')" class="blue">🚀 ZACZYNAJ</button>
-
                         <button onclick="quickChat('OBGADAJ TO!')" class="blue">💬 OBGADAJ</button>
-
                         <button onclick="quickChat('SZYBCIEJ!')" class="red">⏳ SZYBCIEJ</button>
-
                         <button onclick="quickChat('BRAWO!')" class="green">👏 BRAWO</button>
-
                     </div>
-
                     <div style="margin-top: 10px; display: flex;">
-
                         <input type="text" id="chat-input" placeholder="Wiadomość (ENTER)..." style="margin-bottom:0; flex:1">
-
                         <button onclick="sendChat()" style="margin:0 0 0 5px;">WYŚLIJ</button>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="card" style="border-left-color: var(--green)">
-
                 <div class="card-header" onclick="toggleCard(this)">KONTROLA EKRANU / START <span></span></div>
-
                 <div class="card-content">
-
                     <button onclick="startGame()" class="green" style="width: 100%; margin-bottom: 10px;">🚀 ROZPOCZNIJ GRĘ</button>
-
                     <div style="display: flex; gap: 5px;">
-
                         <button id="btn-logo" onclick="toggleIntro()" class="gray" style="flex:1">LOGO ON/OFF</button>
-
                         <button id="btn-question" onclick="toggleQuestion()" class="blue" style="flex:1">PYTANIE ON/OFF</button>
-
                     </div>
-
                     <button onclick="initSerial()" class="blue" style="width: 100%; border: 2px solid white; margin-top: 5px;">🔌 POŁĄCZ PRZYCISKI (ARDUINO)</button>
-
-                   
-
+                    
                     <div id="narada-settings" style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; border: 2px solid transparent; transition: 0.3s;">
-
                         <input type="checkbox" id="chk-narada" onchange="updateNaradaVisibility()" style="width: auto; margin-right: 10px; cursor: pointer;">
-
                         <label for="chk-narada" style="cursor: pointer; font-weight: bold; font-size: 13px;">Włącz napisy narady (u widza)</label>
-
                     </div>
-
                     <hr>
-
                     <div style="display: flex; gap: 5px;">
-
                         <button id="b1" onclick="setActive(1)" style="flex: 1;">LEWA</button>
-
                         <button id="b0" onclick="setActive(0)" class="gray" style="flex: 1;">NEUTRALNY</button>
-
                         <button id="b2" onclick="setActive(2)" style="flex: 1;">PRAWA</button>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="card" style="border-left-color: #00dbde">
-
                 <div class="card-header" onclick="toggleCard(this)">SYMULACJA ROZGRYWKI <span></span></div>
-
                 <div class="card-content">
-
                     <button onclick="startTestRound()" class="green" style="width: 100%; margin-bottom: 10px;">🚀 ROZPOCZNIJ RUNDĘ TESTOWĄ</button>
-
                     <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-
                         <button onclick="setupTestStep(0)" class="blue" style="flex: 1; font-size: 11px;">TEST 1 (x1)</button>
-
                         <button onclick="setupTestStep(1)" class="blue" style="flex: 1; font-size: 11px;">TEST 2 (x2)</button>
-
                     </div>
-
                     <button onclick="forceWin()" class="green" style="width: 100%; margin-top: 10px;">🏆 TEST EKRANU WYGRANEJ</button>
-
                 </div>
-
             </div>
-
-
 
             <div class="card" style="border-left-color: #ff00ff">
-
                 <div class="card-header" onclick="toggleCard(this)">USTAWIENIA DŹWIĘKU <span></span></div>
-
                 <div class="card-content">
-
                     <button id="btn-mute" onclick="toggleMasterMute()" class="gray" style="width: 100%; margin-bottom: 10px;">🔊 DŹWIĘKI: WŁĄCZONE</button>
-
                     <div style="display: flex; gap: 5px;">
-
                         <button id="snd-correct" onclick="playSound('correct')" class="green" style="flex: 1; font-size: 11px;">✅ DOBRA</button>
-
                         <button id="snd-wrong" onclick="playSound('wrong')" class="red" style="flex: 1; font-size: 11px;">❌ BŁĄD</button>
-
                         <button id="snd-win" onclick="playSound('win')" class="blue" style="flex: 1; font-size: 11px;">🏆 WIN</button>
-
                     </div>
-
                     <button onclick="stopAllSounds()" class="gray" style="width: 100%; margin-top: 10px; font-size: 10px; background: #222;">⏹ STOP</button>
-
                 </div>
-
             </div>
 
-
-
-            <div class="card">
-
+            <div class="card"> 
                 <div class="card-header" onclick="toggleCard(this)">USTAWIENIA DRUŻYN & LIMIT <span></span></div>
-
                 <div class="card-content">
-
                     <label style="font-size: 11px;">LIMIT PUNKTÓW DO WYGRANEJ:</label>
-
                     <input type="number" id="in-limit" value="300" onchange="updateLimit()">
-
                     <input type="text" id="in-n1" placeholder="Nazwa Lewej">
-
                     <input type="text" id="in-n2" placeholder="Nazwa Prawej">
-
                     <button id="btn-save" onclick="submitSettings()" class="green" style="width: 100%">ZATWIERDŹ</button>
-
                 </div>
-
             </div>
-
         </div>
 
-
-
         <div class="col">
-
             <div class="card">
-
                 <div class="card-header" onclick="toggleCard(this)">ODPOWIEDZI (KLIKALNE) <span></span></div>
-
                 <div class="card-content">
-
                     <div class="buzzer-area">
-
                         <div id="buzzer-1" class="buzzer-box">LEWY (1)</div>
-
                         <div id="buzzer-2" class="buzzer-box">PRAWY (2)</div>
-
                     </div>
-
                     <button onclick="resetBuzzers()" class="gray" style="width: 100%; margin-bottom: 15px; font-size: 10px;">RESET BUZZERÓW (SPACJA)</button>
 
-
-
                     <div id="current-round-info" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 3px solid var(--gold);">
-
                         <div id="q-round-label" style="font-size: 10px; color: var(--gold); text-transform: uppercase; font-weight: bold;">RUNDA: -</div>
-
                         <div id="q-text-label" style="font-size: 14px; font-weight: bold; margin-top: 3px;">Wybierz rundę...</div>
-
                     </div>
-
-
 
                     <div id="answers-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
 
-
-
                     <button class="red" onclick="handleError()" style="width: 100%; margin-top:10px; padding: 15px;">BŁĄD (X)</button>
-
                     <button onclick="revealAllRemaining()" class="gray" style="width: 100%; margin-top:5px; background: #666;">🔓 ODKRYJ POZOSTAŁE</button>
-
                     <hr>
-
                     <div style="display: flex; gap: 5px;">
-
                         <button onclick="assign(1)" style="flex: 1" class="red">DLA LEWEJ</button>
-
                         <button onclick="assign(2)" style="flex: 1" class="blue">DLA PRAWEJ</button>
-
                     </div>
-
-
 
                     <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #555;">
-
                         <p style="font-size: 10px; color: #aaa; text-align: center; margin-bottom: 5px;">KOREKTA IKSÓW (X):</p>
-
                         <div style="display: flex; gap: 5px;">
-
                             <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-
                                 <button onclick="modifyStrike(1, 1)" class="red" style="font-size: 10px; padding: 5px;">+ X (L)</button>
-
                                 <button onclick="modifyStrike(1, -1)" class="gray" style="font-size: 10px; padding: 5px;">- X (L)</button>
-
                                 <button onclick="modifyStrike(1, 0)" class="gray" style="font-size: 9px; padding: 5px;">CZYŚĆ (L)</button>
-
                             </div>
-
                             <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-
                                 <button onclick="modifyStrike(2, 1)" class="blue" style="font-size: 10px; padding: 5px;">+ X (P)</button>
-
                                 <button onclick="modifyStrike(2, -1)" class="gray" style="font-size: 10px; padding: 5px;">- X (P)</button>
-
                                 <button onclick="modifyStrike(2, 0)" class="gray" style="font-size: 9px; padding: 5px;">CZYŚĆ (P)</button>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
-           
-
+            
             <div class="card">
-
                 <div class="card-header" onclick="toggleCard(this)">WYBÓR RUNDY <span></span></div>
-
                 <div class="card-content">
-
                     <div id="rounds-list"></div>
-
                 </div>
-
             </div>
-
-           
-
+            
             <div class="card">
-
                 <div class="card-header" onclick="toggleCard(this)">ZAKOŃCZENIE - WYNIKI <span></span></div>
-
                 <div class="card-content">
-
                     <button id="btn-force-win" onclick="forceWin()" class="green" style="width: 100%">OGŁOŚ ZWYCIĘSTWO</button>
-
                     <button onclick="fullRestart()" class="gray" style="width: 100%; margin-top: 10px; background: #111;">RESTART SYSTEMU</button>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
-
 
     <div id="status-bar">
-
         <div>AKTYWNA: <span id="st-act" class="stat-val">-</span></div>
-
         <div>MNOŻNIK: <span id="st-mult" class="stat-val">x1</span></div>
-
         <div>SUMA: <span id="st-pot" class="stat-val">0</span></div>
-
         <div>NARADA: <span id="st-nar" class="stat-val">WYŁ.</span></div>
-
         <div>IKSY: <span id="st-strikes" class="stat-val">0:0</span></div>
-
     </div>
-
-
 
     <div id="restart-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center;">
-
         <div style="background:#222; border: 3px solid var(--gold); padding: 30px; border-radius: 15px; text-align:center;">
-
             <h2 style="color:var(--gold); margin-top:0;">⚠️ RESTART</h2>
-
             <p>Czy na pewno chcesz wyzerować punkty i wrócić do LOGO?</p>
-
             <button onclick="confirmFullRestart()" class="red">TAK, RESETUJ GRĘ</button>
-
             <button onclick="closeRestartModal()" class="gray">ANULUJ</button>
-
         </div>
-
     </div>
 
-
-
-    <script>
-
-        let state = JSON.parse(localStorage.getItem('familiada_state')) || getInit();
-
-
-
-        // 2. WYMUŚ USTAWIENIA STARTOWE (zawsze przy odświeżeniu admina)
-
-        state.showIntro = true;      // Włącz logo
-
-        state.showQuestion = false;  // Ukryj pytanie
-
-        state.isGameOver = false;    // Wyłącz ekran wygranej
-
-        state.showOredzie = false;   // Wyłącz orędzie (jeśli używasz)
-
-        state.activeTeam = 0;        // Brak aktywnej drużyny na starcie
-
-
-        let serialWriter;
-
-        let currentRoundNumber = "-";
-
-        let buzzerLocked = false;
-
-        let conn;
-
-        sync();
-
-
-
-
-
-        const peer = new Peer('familiada-rezyser-zsk');
-
-
-
-        peer.on('open', id => console.log('Reżyserka gotowa!'));
-
-        peer.on('connection', c => {
-
-            conn = c;
-
-            updateTabletStatus(true);
-
-            conn.on('open', () => conn.send(prepareStateForTablet()));
-
-            conn.on('close', () => updateTabletStatus(false));
-
-            conn.on('error', () => updateTabletStatus(false));
-
-        });
-
-
-
-        document.addEventListener('DOMContentLoaded', () => {
-
-            const chatInput = document.getElementById('chat-input');
-
-            chatInput.addEventListener('keypress', (e) => {
-
-                if (e.key === 'Enter') {
-
-                    sendChat();
-
-                    chatInput.blur();
-
-                }
-
-            });
-
-            render();
-
-        });
-
-
-
-        function updateTabletStatus(isOnline) {
-
-            const light = document.getElementById('tablet-light');
-
-            const text = document.getElementById('tablet-text');
-
-            if(isOnline) { light.className="status-light status-online"; text.innerText="POŁĄCZONY"; text.style.color="var(--green)"; }
-
-            else { light.className="status-light status-offline"; text.innerText="SZUKAM..."; text.style.color="white"; }
-
-        }
-
-
-
-        function updateArduinoStatus(isConnected) {
-
-            const light = document.getElementById('arduino-light');
-
-            const text = document.getElementById('arduino-text');
-
-            if(isConnected) { light.className="status-light status-online"; text.innerText="POŁĄCZONE ✅"; text.style.color="var(--green)"; }
-
-            else { light.className="status-light status-offline"; text.innerText="ODŁĄCZONE"; text.style.color="white"; }
-
-        }
-
-
-
-        function prepareStateForTablet() {
-
-            return { ...state, round: currentRoundNumber.replace(/[^0-9]/g, '') || 1, teamNameL: state.name1, teamNameR: state.name2 };
-
-        }
-
-
-
-        function getInit() {
-
-            return { showIntro: true, showQuestion: false, activeTeam: 0, duelPhase: true, showNarada: false, isGameOver: false, winner: null, name1: "LEWA", name2: "PRAWA", score1: 0, score2: 0, pot: 0, strikes1: 0, strikes2: 0, answers: [], currentQuestion: "", multiplier: 1, isMuted: false, scoreLimit: 300, lastSound: {id: null, time: 0} };
-
-        }
-
-
-
-        function sync() {
-
-            localStorage.setItem('familiada_state', JSON.stringify(state));
-
-            render();
-
-            if (conn && conn.open) conn.send(prepareStateForTablet());
-
-        }
-
-
-
-        function quickChat(msg) { if (conn && conn.open) conn.send({ type: 'CHAT_MSG', text: msg }); }
-
-
-
-        function sendChat() {
-
-            const input = document.getElementById('chat-input');
-
-            if (input.value.trim() !== "" && conn && conn.open) {
-
-                conn.send({ type: 'CHAT_MSG', text: input.value });
-
-                input.value = "";
-
-            }
-
-        }
-
-
-
-       async function initSerial() {
+<script>
+    // --- 1. STAN I INICJALIZACJA ---
+let state = JSON.parse(localStorage.getItem('familiada_state')) || getInit();
+
+// Wymuszone stany przy odświeżeniu reżyserki
+state.showIntro = true;
+state.showQuestion = false;
+state.activeTeam = 0;
+state.isGameOver = false;
+
+let currentRoundNumber = "-";
+let buzzerLocked = false;
+let conn;
+let serialWriter; 
+
+// --- 2. KOMUNIKACJA PEERJS (WIDZ/TABLET) ---
+const peer = new Peer('familiada-rezyser-zsk'); 
+peer.on('open', id => console.log('Reżyserka gotowa!'));
+peer.on('connection', c => {
+    conn = c;
+    updateTabletStatus(true);
+    conn.on('open', () => sync());
+});
+
+// --- 3. TWOJA LOGIKA ARDUINO (BEZ ZMIAN) ---
+async function initSerial() {
     if (!("serial" in navigator)) { 
         alert("Twoja przeglądarka nie wspiera Serial API. Użyj Chrome lub Edge."); 
         return; 
@@ -867,380 +403,229 @@ async function sendToArduino(cmd) {
     }
 }
 
+// --- 4. LOGIKA PRZYCISKÓW I BUZZERÓW ---
+function triggerBuzzer(team) {
+    if (state.showIntro || buzzerLocked) return;
+    buzzerLocked = true;
+    setActive(team);
+    if (team === 1) document.getElementById('buzzer-1').classList.add('buzzer-active-1');
+    else document.getElementById('buzzer-2').classList.add('buzzer-active-2');
+    playSound('correct');
+}
 
+function setActive(n) {
+    state.activeTeam = n;
+    sendToArduino(n.toString());
+    sync();
+}
 
-        window.addEventListener('keydown', e => {
+function resetBuzzers() {
+    buzzerLocked = false;
+    document.getElementById('buzzer-1').classList.remove('buzzer-active-1');
+    document.getElementById('buzzer-2').classList.remove('buzzer-active-2');
+    setActive(0);
+}
 
-            if (document.activeElement.tagName === "INPUT") return;
+// --- 5. DODANE/NAPRAWIONE FUNKCJE (CZAT, NICKI, X) ---
+function quickChat(msg) {
+    document.getElementById('chat-input').value = msg;
+    sendChat();
+}
 
-            if (e.code === "Space") resetBuzzers();
+function sendChat() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (msg && conn && conn.open) {
+        // Wysyłamy jako obiekt, żeby tablet wiedział, że to tekst do wyświetlenia
+        conn.send({ type: 'chat', text: msg });
+        input.value = '';
+    }
+}
 
-            if (e.key === "1") triggerBuzzer(1);
+function submitSettings() {
+    const n1 = document.getElementById('in-n1').value.trim();
+    const n2 = document.getElementById('in-n2').value.trim();
+    if (n1) state.name1 = n1;
+    if (n2) state.name2 = n2;
+    state.scoreLimit = parseInt(document.getElementById('in-limit').value) || 300;
+    sync();
+    alert("Zatwierdzono: " + state.name1 + " vs " + state.name2);
+}
 
-            if (e.key === "2") triggerBuzzer(2);
+function updateLimit() {
+    state.scoreLimit = parseInt(document.getElementById('in-limit').value) || 300;
+    sync();
+}
 
+function handleError() {
+    if(state.activeTeam === 0) return;
+    playSound('wrong');
+    if(state.activeTeam === 1) state.strikes1++; else state.strikes2++;
+    sync();
+}
+
+function modifyStrike(team, val) {
+    if (team === 1) {
+        if (val === 0) state.strikes1 = 0;
+        else state.strikes1 = Math.max(0, state.strikes1 + val);
+    } else {
+        if (val === 0) state.strikes2 = 0;
+        else state.strikes2 = Math.max(0, state.strikes2 + val);
+    }
+    sync();
+}
+
+function forceWin() {
+    state.isGameOver = true;
+    // Wyliczanie zwycięzcy do wyświetlenia na tablecie
+    if (state.score1 > state.score2) state.winner = state.name1;
+    else if (state.score2 > state.score1) state.winner = state.name2;
+    else state.winner = "REMIS";
+    
+    playSound('win');
+    sync();
+}
+
+// --- 6. RUNDY I PUNKTY ---
+function setRound(idx) {
+    if(typeof roundsData !== 'undefined' && roundsData[idx]) {
+        const r = roundsData[idx];
+        currentRoundNumber = "RUNDA " + (idx + 1);
+        state.answers = r.odpowiedzi.map(a => ({...a, revealed: false}));
+        state.currentQuestion = r.pytanie;
+        state.multiplier = r.multiplier;
+        state.activeTeam = 0; state.strikes1 = 0; state.strikes2 = 0; state.pot = 0;
+        resetBuzzers();
+        sync();
+    }
+}
+
+function selectAnswer(index) {
+    if(state.activeTeam === 0) return;
+    let ans = state.answers[index];
+    if (!ans.revealed) {
+        ans.revealed = true;
+        state.pot += (ans.points * state.multiplier);
+        playSound('correct');
+        sync();
+    }
+}
+
+function undoAnswer(index) {
+    let ans = state.answers[index];
+    if (ans.revealed) {
+        state.pot = Math.max(0, state.pot - (ans.points * state.multiplier));
+        ans.revealed = false;
+        sync();
+    }
+}
+
+function assign(n) { 
+    if(n === 1) state.score1 += state.pot; 
+    else state.score2 += state.pot; 
+    state.pot = 0; state.strikes1 = 0; state.strikes2 = 0; state.activeTeam = 0; 
+    resetBuzzers();
+    sync(); 
+}
+
+// --- 7. SYNCHRONIZACJA I INTERFEJS ---
+function toggleCard(header) {
+    header.parentElement.classList.toggle('collapsed');
+}
+
+function sync() { 
+    localStorage.setItem('familiada_state', JSON.stringify(state)); 
+    render(); 
+    if (conn && conn.open) {
+        // Wysyłamy stan wzbogacony o nazwy pól, których spodziewa się tablet
+        conn.send({
+            ...state,
+            round: currentRoundNumber,
+            teamNameL: state.name1,
+            teamNameR: state.name2
         });
+    }
+}
 
+function render() {
+    document.getElementById('b1').className = state.activeTeam === 1 ? "active-red-team" : "gray";
+    document.getElementById('b0').className = state.activeTeam === 0 ? "btn-on" : "gray";
+    document.getElementById('b2').className = state.activeTeam === 2 ? "active-blue-team" : "gray";
 
-
-        function triggerBuzzer(team) {
-
-            if (state.showIntro) return;
-
-            if (buzzerLocked) return;
-
-            buzzerLocked = true;
-
-            if (team === 1) { document.getElementById('buzzer-1').classList.add('buzzer-active-1'); setActive(1); }
-
-            else { document.getElementById('buzzer-2').classList.add('buzzer-active-2'); setActive(2); }
-
-            playSound('correct');
-
-        }
-
-
-
-        function resetBuzzers() {
-
-
-            buzzerLocked = false;
-            document.getElementById('buzzer-1').classList.remove('buzzer-active-1');
-            document.getElementById('buzzer-2').classList.remove('buzzer-active-2');
-            setActive(0);
-
-        }
-
-
-
-        function setRound(idx) {
-
-            if(typeof roundsData !== 'undefined' && roundsData[idx]) {
-
-                const r = roundsData[idx];
-
-                currentRoundNumber = "RUNDA " + (idx + 1);
-
-                state.answers = r.odpowiedzi.map(a => ({...a, revealed: false}));
-
-                state.currentQuestion = r.pytanie;
-
-                state.multiplier = r.multiplier;
-
-                state.activeTeam = 0; state.strikes1 = 0; state.strikes2 = 0; state.pot = 0;
-
-                resetBuzzers();
-
-                sync();
-
-            }
-
-        }
-
-
-
-        function selectAnswer(index) {
-
-            if(state.activeTeam === 0) return;
-
-            let ans = state.answers[index];
-
-            if (!ans.revealed) {
-
-                ans.revealed = true;
-
-                state.pot += (ans.points * state.multiplier);
-
-                playSound('correct');
-
-                sync();
-
-            }
-
-        }
-
-
-
-        function undoAnswer(index) {
-
-            let ans = state.answers[index];
-
+    document.getElementById('st-act').innerText = state.activeTeam === 0 ? "-" : (state.activeTeam === 1 ? state.name1 : state.name2);
+    document.getElementById('st-pot').innerText = state.pot;
+    document.getElementById('st-mult').innerText = `x${state.multiplier}`;
+    document.getElementById('st-strikes').innerText = `${state.strikes1}:${state.strikes2}`;
+    
+    document.getElementById('q-round-label').innerText = currentRoundNumber;
+    document.getElementById('q-text-label').innerText = state.currentQuestion || "Wybierz rundę...";
+    
+    const container = document.getElementById('answers-container');
+    container.innerHTML = '';
+    if (state.answers) {
+        state.answers.forEach((ans, i) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex'; row.style.gap = '5px';
+            const b = document.createElement('button');
+            b.className = ans.revealed ? "green" : "gray";
+            b.style.flex = "1"; b.style.textAlign = "left";
+            b.innerHTML = `${ans.text} <span style="float:right">${ans.points} pkt</span>`;
+            if(!ans.revealed) b.onclick = () => selectAnswer(i);
+            row.appendChild(b);
             if (ans.revealed) {
-
-                state.pot -= (ans.points * state.multiplier);
-
-                if(state.pot < 0) state.pot = 0;
-
-                ans.revealed = false;
-
-                sync();
-
+                const undo = document.createElement('button');
+                undo.innerHTML = "↺"; undo.className = "red"; undo.style.width = "40px";
+                undo.onclick = () => undoAnswer(i);
+                row.appendChild(undo);
             }
-
-        }
-
-
-
-        function render() {
-
-            const btnLeft = document.getElementById('b1');
-
-            const btnNeutral = document.getElementById('b0');
-
-            const btnRight = document.getElementById('b2');
-
-
-
-            btnLeft.className = "gray"; btnNeutral.className = "gray"; btnRight.className = "gray";
-
-
-
-            if (state.activeTeam === 1) btnLeft.className = "active-red-team";
-
-            else if (state.activeTeam === 2) btnRight.className = "active-blue-team";
-
-            else btnNeutral.className = "btn-on";
-
-
-
-            document.getElementById('st-act').innerText = state.activeTeam === 0 ? "-" : (state.activeTeam === 1 ? state.name1 : state.name2);
-
-            document.getElementById('st-pot').innerText = state.pot;
-
-            document.getElementById('st-mult').innerText = `x${state.multiplier}`;
-
-            document.getElementById('st-strikes').innerText = `${state.strikes1}:${state.strikes2}`;
-
-            document.getElementById('q-round-label').innerText = currentRoundNumber;
-
-            document.getElementById('q-text-label').innerText = state.currentQuestion || "Wybierz rundę...";
-
-           
-
-            const container = document.getElementById('answers-container');
-
-            container.innerHTML = '';
-
-            if (state.answers) {
-
-                state.answers.forEach((ans, i) => {
-
-                    const row = document.createElement('div');
-
-                    row.style.display = 'flex'; row.style.gap = '5px';
-
-                    const b = document.createElement('button');
-
-                    b.className = ans.revealed ? "green" : "gray";
-
-                    b.style.flex = "1"; b.style.textAlign = "left";
-
-                    b.innerHTML = `${ans.text} <span style="float:right">${ans.points} pkt</span>`;
-
-                    if(!ans.revealed) b.onclick = () => selectAnswer(i);
-
-                    row.appendChild(b);
-
-                    if (ans.revealed) {
-
-                        const lockBtn = document.createElement('button');
-
-                        lockBtn.innerHTML = "🔓"; lockBtn.className = "red"; lockBtn.style.width = "45px";
-
-                        lockBtn.onclick = () => undoAnswer(i);
-
-                        row.appendChild(lockBtn);
-
-                    }
-
-                    container.appendChild(row);
-
-                });
-
-            }
-
-
-
-            document.getElementById('btn-logo').className = state.showIntro ? "btn-on" : "gray";
-
-            document.getElementById('btn-question').className = state.showQuestion ? "btn-on" : "blue";
-
-           
-
-            const btnMute = document.getElementById('btn-mute');
-
-            btnMute.innerText = state.isMuted ? "🔇 DŹWIĘKI: WYCISZONE" : "🔊 DŹWIĘKI: WŁĄCZONE";
-
-            btnMute.className = state.isMuted ? "mute-active" : "gray";
-
-
-
-            const naradaBox = document.getElementById('narada-settings');
-
-            if(state.showNarada) naradaBox.classList.add('narada-active');
-
-            else naradaBox.classList.remove('narada-active');
-
-
-
-            let n = "WYŁ.";
-
-            if(state.showNarada) {
-
-                if(state.strikes1 === 3 && state.activeTeam === 1) n = `DLA ${state.name2}`;
-
-                else if(state.strikes2 === 3 && state.activeTeam === 2) n = `DLA ${state.name1}`;
-
-                else n = "CZEKA NA 3X";
-
-            }
-
-            document.getElementById('st-nar').innerText = n;
-
-        }
-
-
-
-        function modifyStrike(team, val) {
-
-            if (team === 1) {
-
-                if (val === 0) state.strikes1 = 0;
-
-                else state.strikes1 = Math.max(0, state.strikes1 + val);
-
-            } else {
-
-                if (val === 0) state.strikes2 = 0;
-
-                else state.strikes2 = Math.max(0, state.strikes2 + val);
-
-            }
-
-            sync();
-
-        }
-
-
-
-        function handleError() {
-
-            if(state.activeTeam === 0) return;
-
-            playSound('wrong');
-
-            if(state.activeTeam === 1) state.strikes1++; else state.strikes2++;
-
-            sync();
-
-        }
-
-
-
-        function assign(n) { if(n === 1) state.score1 += state.pot; else state.score2 += state.pot; state.pot = 0; state.strikes1 = 0; state.strikes2 = 0; state.activeTeam = 0; resetBuzzers(); sync(); }
-
-        function submitSettings() { state.name1 = document.getElementById('in-n1').value || "LEWA"; state.name2 = document.getElementById('in-n2').value || "PRAWA"; sync(); }
-
-        function toggleIntro() { state.showIntro = !state.showIntro; sync(); }
-
-        function toggleQuestion() { state.showQuestion = !state.showQuestion; sync(); }
-
-        function setActive(n) {
-            state.activeTeam = n;
-            sendToArduino(n.toString());
-            sync();
-        }
-
-        function toggleMasterMute() { state.isMuted = !state.isMuted; sync(); }
-
-        function playSound(id) { if(!state.isMuted) { state.lastSound = { id: id, time: Date.now() }; sync(); } }
-
-        function stopAllSounds() { state.lastSound = { id: 'stop', time: Date.now() }; sync(); }
-
-        function updateNaradaVisibility() { state.showNarada = document.getElementById('chk-narada').checked; sync(); }
-
-        function updateLimit() { state.scoreLimit = parseInt(document.getElementById('in-limit').value) || 300; sync(); }
-
-        function startGame() { if(confirm("Start gry?")) { state.score1 = 0; state.score2 = 0; state.pot = 0; state.strikes1 = 0; state.strikes2 = 0; state.isGameOver = false; state.showIntro = false; state.showQuestion = true; if(typeof roundsData !== 'undefined') setRound(0); sync(); } }
-
-        function fullRestart() { document.getElementById('restart-modal').style.display = 'flex'; }
-
-        function closeRestartModal() { document.getElementById('restart-modal').style.display = 'none'; }
-
-        function confirmFullRestart() {
-
-            stopAllSounds();
-
-            const baseState = getInit();
-
-            baseState.name1 = state.name1; baseState.name2 = state.name2; baseState.isMuted = state.isMuted;
-
-            state = baseState; currentRoundNumber = "-";
-
-            resetBuzzers();
-
-            closeRestartModal();
-
-            sync();
-
-        }
-
-        function revealAllRemaining() { state.answers.forEach(a => a.revealed = true); sync(); }
-
-        function forceWin() { state.winner = state.score1 >= state.score2 ? state.name1 : state.name2; state.isGameOver = true; playSound('win'); sync(); }
-
-        function startTestRound() { state.showIntro = false; state.showQuestion = true; state.strikes1 = 0; state.strikes2 = 0; state.pot = 0; state.activeTeam = 0; setupTestStep(0); }
-
-        function setupTestStep(index) {
-
-            const data = [
-
-                { pytanie: "TEST 1: Co można znaleźć w piórniku?", multiplier: 1, odpowiedzi: [ { text: "DŁUGOPIS", points: 45 }, { text: "OŁÓWEK", points: 30 }, { text: "GUMKA", points: 15 }, { text: "LINIJKĄ", points: 10 } ] },
-
-                { pytanie: "TEST 2: Co kojarzy się z zimą?", multiplier: 2, odpowiedzi: [ { text: "ŚNIEG", points: 50 }, { text: "MRÓZ", points: 25 }, { text: "NARTY", points: 15 }, { text: "CHOINKA", points: 10 } ] }
-
-            ];
-
-            const r = data[index]; currentRoundNumber = "TEST " + (index + 1); state.answers = r.odpowiedzi.map(a => ({...a, revealed: false})); state.currentQuestion = r.pytanie; state.multiplier = r.multiplier; sync();
-
-        }
-
-        function toggleCard(headerElement) {
-
-            const card = headerElement.closest('.card');
-
-            card.classList.toggle('collapsed');
-
-        }
-
-
-
-        window.onload = () => {
-
-            if(typeof roundsData !== 'undefined') {
-
-                const list = document.getElementById('rounds-list');
-
-                roundsData.forEach((r, i) => {
-
-                    const b = document.createElement('button');
-
-                    b.innerText = `R${i+1} (x${r.multiplier})`;
-
-                    b.onclick = () => setRound(i);
-
-                    list.appendChild(b);
-
-                });
-
-            }
-
-            render();
-
-        };
-
-    </script>
-
+            container.appendChild(row);
+        });
+    }
+
+    document.getElementById('btn-logo').className = state.showIntro ? "btn-on" : "gray";
+    document.getElementById('btn-question').className = state.showQuestion ? "btn-on" : "blue";
+}
+
+// --- 8. POMOCNICZE ---
+function getInit() { return { showIntro: true, showQuestion: false, activeTeam: 0, name1: "LEWA", name2: "PRAWA", score1: 0, score2: 0, pot: 0, strikes1: 0, strikes2: 0, answers: [], currentQuestion: "", multiplier: 1, isMuted: false, scoreLimit: 300, winner: null }; }
+function updateTabletStatus(s) { document.getElementById('tablet-light').className = s ? "status-light status-online" : "status-light status-offline"; document.getElementById('tablet-text').innerText = s ? "POŁĄCZONO" : "SZUKAM..."; }
+function updateArduinoStatus(s) { document.getElementById('arduino-light').className = s ? "status-light status-online" : "status-light status-offline"; document.getElementById('arduino-text').innerText = s ? "POŁĄCZONO" : "ODŁĄCZONE"; }
+function playSound(id) { if(!state.isMuted) { state.lastSound = { id: id, time: Date.now() }; sync(); } }
+function toggleIntro() { state.showIntro = !state.showIntro; sync(); }
+function toggleQuestion() { state.showQuestion = !state.showQuestion; sync(); }
+function fullRestart() { document.getElementById('restart-modal').style.display = 'flex'; }
+function closeRestartModal() { document.getElementById('restart-modal').style.display = 'none'; }
+function confirmFullRestart() { localStorage.clear(); location.reload(); }
+
+function startGame() { 
+    if(confirm("Start gry?")) { 
+        state.score1 = 0; state.score2 = 0; state.pot = 0; state.strikes1 = 0; state.strikes2 = 0; 
+        state.isGameOver = false; state.showIntro = false; state.showQuestion = true; 
+        if(typeof roundsData !== 'undefined') setRound(0); 
+        sync(); 
+    } 
+}
+
+window.onload = () => {
+    if(typeof roundsData !== 'undefined') {
+        const list = document.getElementById('rounds-list');
+        roundsData.forEach((r, i) => {
+            const b = document.createElement('button');
+            b.innerText = `R${i+1} (x${r.multiplier})`;
+            b.onclick = () => setRound(i);
+            list.appendChild(b);
+        });
+    }
+    render();
+};
+
+window.addEventListener('keydown', e => {
+    if (document.activeElement.tagName === "INPUT") return;
+    if (e.code === "Space") { e.preventDefault(); resetBuzzers(); }
+    if (e.key === "1") triggerBuzzer(1);
+    if (e.key === "2") triggerBuzzer(2);
+    if (e.key === "x" || e.key === "X") handleError();
+});
+</script>
 </body>
-
 </html>
