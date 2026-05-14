@@ -4,11 +4,92 @@
     <meta charset="UTF-8">
     <title>FAMILIADA ZSK - WIDOK WIDZA</title>
     <link rel="stylesheet" href="styles.css">
+<style>
+    #final-board {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        animation: fadeIn 0.5s ease-in-out;
+        z-index: 10;
+    }
+
+    .final-columns-container {
+        display: flex;
+        width: 100%;
+        gap: 30px;
+        justify-content: center;
+    }
+
+    .final-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: var(--board-blue); 
+        border: 12px solid #3a3a3a; 
+        border-radius: 30px; 
+        padding: 20px; 
+        box-shadow: inset 0 0 50px #000;
+    }
+
+    .final-column-title {
+        text-align: center;
+        color: #aaa;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        line-height: 1.4;
+    }
+
+    .final-row {
+        display: flex;
+        background: #004488; 
+        height: 55px; 
+        border: 3px solid var(--accent-blue); 
+        align-items: center;
+        font-size: 1.4vw; 
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .final-text {
+        flex: 4;
+        padding-left: 15px;
+        border-right: 2px solid rgba(0, 170, 255, 0.3);
+        overflow: hidden;
+        white-space: nowrap;
+        color: #fff;
+        text-shadow: 2px 2px 4px #000;
+    }
+
+    .final-pts {
+        flex: 1;
+        text-align: center;
+        color: var(--led-yellow); 
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    #center-area {
+        flex: 2;
+        display: flex;
+        justify-content: center;
+        margin: 0 20px;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+</style>
 </head>
+
+<body>
+<!--
 <body onclick="this.querySelector('#unlock-msg').style.display='none'">
     <div id="unlock-msg" style="position:fixed; top:0; left:0; width:100%; height:100%; display: none; background:rgba(0,0,0,0.8); z-index:10000; display:flex; align-items:center; justify-content:center; color:white; font-family:sans-serif; cursor:pointer;">
         <h1>KLIKNIJ GDZIEKOLWIEK, ABY ZACZĄĆ</h1>
-    </div>
+    </div>-->
 
     <div id="blackout"></div>
 
@@ -18,10 +99,16 @@
 
     <div id="game-screen">
         <div id="narada-box"></div>
-        <div class="pot-area">
+        <div id="viewer-timer" style="display: none;">
+            <div class="timer-label">CZAS:</div>
+            <div id="timer-number">20</div>
+        </div>
+        
+        <div class="pot-area" id="main-pot-area">
             <div class="pot-label">SUMA</div>
             <div class="score-val" id="pot">000</div>
         </div>
+        
         <div id="question-display"></div>
         
         <div id="game-content">
@@ -33,7 +120,22 @@
                 <div class="strikes" id="str1"></div>
             </div>
 
-            <div class="main-board" id="ans-grid"></div>
+            <div id="center-area">
+                <div class="main-board" id="ans-grid" style="width: 100%;"></div>
+
+                <div id="final-board" style="display: none;">
+                    <div class="final-columns-container">
+                        <div class="final-column">
+                            <div class="final-column-title"></div>
+                            <div id="final-col-1"></div>
+                        </div>
+                        <div class="final-column">
+                            <div class="final-column-title"></div>
+                            <div id="final-col-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="side-area">
                 <div class="team-box" id="box-right">
@@ -47,7 +149,7 @@
 
     <div id="win-screen">
         <div class="win-card">
-            <h1>WYGRYWA:</h1>
+            <h1>WYGRYWA DRUŻYNA:</h1>
             <div id="win-team-name">-</div>
             <div id="win-points">0 : 0</div>
             <h2 style="color: white; margin-top: 30px;">GRATULACJE!</h2>
@@ -58,6 +160,11 @@
     <audio id="snd-correct" src="audio/correct.mp3"></audio>
     <audio id="snd-wrong" src="audio/wrong.mp3"></audio>
     <audio id="snd-win" src="audio/win.mp3"></audio>
+    <audio id="snd-wrong_final" src="audio/wrong_final.mp3"></audio>
+    <audio id="snd-po_1_f" src="audio/po_1_f.mp3"></audio>
+    <audio id="snd-przed_r" src="audio/przed_r.mp3"></audio>
+    <audio id="snd-przed_final" src="audio/przed_final.mp3"></audio>
+    <audio id="snd-check" src="audio/check.mp3"></audio>
 
     <script src="logic.js"></script>
 </body>

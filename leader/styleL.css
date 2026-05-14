@@ -1,0 +1,90 @@
+
+:root { 
+    --gold: #dbb13b; --gold-light: #fff3d4; --bg: #050a14; --card-bg: #101626;
+    --red: #ff3333; --blue: #0077ff; --green: #2ecc71; --text-main: #f0f0f0;
+}
+
+body { 
+    font-family: 'Segoe UI', Roboto, sans-serif; 
+    background: var(--bg); color: var(--text-main); margin: 0; padding: 0;
+    height: 100vh; width: 100vw; overflow: hidden;
+    display: grid;
+    grid-template-rows: 50px 95px 75px 105px 1fr 40px; 
+}
+
+#top-bar { 
+    background: #000; border-bottom: 2px solid var(--gold); 
+    display: flex; justify-content: space-around; align-items: center;
+    font-weight: bold; font-size: 16px;
+}
+.stat-val { color: var(--gold); font-size: 20px; margin-left: 5px; }
+
+#scoreboard-zone {
+    display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+    background: rgba(255,255,255,0.02); border-bottom: 1px solid #222;
+}
+.team-score-box {
+    flex: 1; background: #1a1a1a; border: 2px solid #333; border-radius: 10px;
+    text-align: center; padding: 6px; display: flex; flex-direction: column; justify-content: center;
+    transition: 0.3s;
+}
+.active-red { border-color: white !important; background: var(--red) !important; box-shadow: 0 0 20px var(--red); color: white; }
+.active-blue { border-color: white !important; background: var(--blue) !important; box-shadow: 0 0 20px var(--blue); color: white; }
+
+.t-name { font-size: 13px; color: #aaa; font-weight: bold; text-transform: uppercase; }
+.active-red .t-name, .active-blue .t-name { color: #fff; }
+
+.t-score { font-size: 34px; font-weight: 900; color: white; line-height: 1.1; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.t-strikes { font-size: 18px; color: var(--red); font-weight: bold; letter-spacing: 4px; height: 22px; }
+.active-red .t-strikes, .active-blue .t-strikes { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+
+#host-status-box {
+    flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+#status-text { font-size: 18px; font-weight: 900; color: var(--gold); text-transform: uppercase; }
+#narada-text { 
+    background: var(--red); color: white; padding: 4px 12px; border-radius: 6px; 
+    font-size: 13px; font-weight: bold; margin-top: 6px; display: none; box-shadow: 0 0 10px var(--red);
+}
+
+#chat-zone { display: flex; align-items: center; justify-content: center; }
+#chat-popup {
+    display: none; width: 90%; background: var(--gold); color: black; 
+    padding: 8px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 17px;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+#host-timer-box { display: none; width: 90%; }
+
+#q-zone { padding: 0 20px; display: flex; align-items: center; justify-content: center; }
+.card-q { 
+    background: var(--card-bg); border-left: 8px solid var(--gold);
+    width: 100%; padding: 15px; border-radius: 10px; text-align: center;
+}
+#q-text { font-size: 22px; margin: 0; color: var(--gold-light); text-transform: uppercase; }
+
+#ans-zone { padding: 5px 20px 15px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+
+.ans-row {
+    background: rgba(255, 255, 255, 0.08); min-height: 50px;
+    border-radius: 8px; padding: 0 20px; font-size: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    border: 1px solid rgba(255,255,255,0.05); color: #777;
+    transition: 0.3s;
+}
+.revealed { color: var(--gold-light) !important; border-left: 8px solid var(--gold); background: rgba(219, 177, 59, 0.15) !important; font-weight: bold; }
+
+#footer {
+    background: #000; border-top: 2px solid var(--gold);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 10px; font-size: 11px; color: #555;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #e74c3c; transition: 0.3s; }
+.online { background: #2ecc71 !important; box-shadow: 0 0 10px #2ecc71; }
+
+.dimmed { opacity: 0.4; }
+.visible { opacity: 1; }
+
+.host-btn { padding: 6px 12px; font-size: 11px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+.btn-rules { background: #008cba; }
+.btn-alert { background: #ff4444; }
