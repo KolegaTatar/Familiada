@@ -12,6 +12,7 @@ System programowo-sprzętowy zaprojektowany do przeprowadzenia starcia „Nauczy
 
 ### 🛠️ Jak to działa?
 Projekt opiera się na architekturze P2P (Peer-to-Peer), co oznacza, że urządzenia komunikują się bezpośrednio ze sobą bez zewnętrznego serwera.
+* **Wymagania przeglądarki:**  System został zoptymalizowany i przetestowany wyłącznie pod przeglądarkę Google Chrome. W innych przeglądarkach funkcje sprzętowe i sieciowe mogą nie działać prawidłowo.
 * **Synchronizacja Live:** Zmiany wprowadzone przez Reżysera natychmiast pojawiają się na tablicy wyników i tablecie Prowadzącego.
 * **Hardware:** Fizyczne przyciski (buzzery) podłączone przez Arduino blokują system po wykryciu pierwszej odpowiedzi (kto pierwszy, ten lepszy).
 * **Audio:** Pełna ścieżka dźwiękowa (intro, poprawne odpowiedzi, błędy).
@@ -36,6 +37,7 @@ A software and hardware system designed for the "Teachers vs. Students" game sho
 
 ### 🛠️ How it Works
 The system uses P2P (Peer-to-Peer) architecture for real-time communication between devices without a backend server.
+* **Browser Compatibility:**  This system is optimized and tested strictly for Google Chrome. Features may fail on other browsers due to specific hardware and network API requirements.
 * **Live Sync:** Real-time updates between the Director, the Host, and the Audience display.
 * **Hardware Integration:** Physical buzzers connected via Arduino ensure fair "fastest finger first" mechanics using the Web Serial API.
 * **Atmosphere:** Integrated sound effects and animations for an authentic TV experience.
