@@ -5,6 +5,35 @@
 
 ---
 
+## 📂 Struktura projektu / Project Structure
+
+```text
+FAMILIADA/
+├── apps/
+│   ├── admin/
+│   │   ├── admin.html
+│   │   ├── logicA.js
+│   │   └── styleA.css
+│   ├── leader/
+│   │   ├── leader.html
+│   │   ├── logicL.js
+│   │   └── styleL.css
+│   ├── user/
+│   │   ├── audio/
+│   │   ├── index.html
+│   │   ├── logic.js
+│   │   └── styles.css
+│   ├── peerjs.min.js
+│   └── zsk.js
+├── docs/
+│   ├── Familiada - instrukcja i przebieg gry.pdf
+│   └── Finał odpowiedzi - lista.pdf
+├── hardware/
+│   └── buttons_system/
+│       └── buttons_system.ino
+└── README.md
+
+
 ## 🇵🇱 Wersja Polska (Polish Version)
 
 ### 🚀 O projekcie
